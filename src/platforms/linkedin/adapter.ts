@@ -21,6 +21,32 @@ interface ExtractedRow {
   authorUrl: string | null;
   dateText: string | null;
   images: string[];
+  postId: string | null;
+  permalink: string | null;
+}
+
+/**
+ * Kartın çeviri altyapısı `id` özniteliğine gönderinin URN kimliğini gömer:
+ * shareId=... veya userGeneratedContentId=... → gerçek permalink kurulabilir.
+ */
+export function permalinkFromCommentaryId(
+  idAttr: string,
+): { postId: string; permalink: string } | null {
+  const share = idAttr.match(/shareId=(\d+)/);
+  if (share) {
+    return {
+      postId: share[1],
+      permalink: `https://www.linkedin.com/feed/update/urn:li:share:${share[1]}/`,
+    };
+  }
+  const ugc = idAttr.match(/userGeneratedContentId=(\d+)/);
+  if (ugc) {
+    return {
+      postId: ugc[1],
+      permalink: `https://www.linkedin.com/feed/update/urn:li:ugcPost:${ugc[1]}/`,
+    };
+  }
+  return null;
 }
 
 /**
@@ -93,7 +119,27 @@ const EXTRACT_POSTS_SNIPPET = `(() => {
     const images = [...card.querySelectorAll("img")]
       .map((i) => i.getAttribute("src") || "")
       .filter((s) => s.includes("media.licdn.com") && !/shrink_\\d+_\\d+|company-logo/.test(s));
-    out.push({ text, author, authorUrl, dateText: dateLine ? dateLine.trim() : null, images });
+    // Gerçek permalink: çeviri altyapısı id'sine gömülü share/ugc kimliği.
+    const commentary = card.querySelector('[id^="translatable-commentary-"]');
+    const idAttr = commentary ? commentary.getAttribute("id") || "" : "";
+    const shareMatch = idAttr.match(/shareId=(\\d+)/);
+    const ugcMatch = idAttr.match(/userGeneratedContentId=(\\d+)/);
+    const postId = shareMatch ? shareMatch[1] : ugcMatch ? ugcMatch[1] : null;
+    const urn = shareMatch
+      ? "urn:li:share:" + shareMatch[1]
+      : ugcMatch
+        ? "urn:li:ugcPost:" + ugcMatch[1]
+        : null;
+    const permalink = urn ? "https://www.linkedin.com/feed/update/" + urn + "/" : null;
+    out.push({
+      text,
+      author,
+      authorUrl,
+      dateText: dateLine ? dateLine.trim() : null,
+      images,
+      postId,
+      permalink,
+    });
   }
   return out;
 })()`;
@@ -196,12 +242,14 @@ export const linkedinScanner: PlatformScanner = {
 
       const rows = await extractPosts(page);
       for (const row of rows) {
-        const key = row.text.slice(0, 140).toLowerCase();
+        // Aynı gönderi için öncelik: gerçek postId; yoksa metin parmak izi.
+        const key = row.postId ?? `txt:${row.text.slice(0, 140).toLowerCase()}`;
         if (!row.text || seen.has(key)) continue;
         seen.add(key);
         yield {
-          platformPostId: null,
-          canonicalUrl: syntheticPermalink(row.authorUrl, row.text),
+          platformPostId: row.postId,
+          canonicalUrl:
+            row.permalink ?? syntheticPermalink(row.authorUrl, row.text),
           text: row.text,
           publishedAt: relativeToIso(row.dateText),
           extractedLinks: extractUrls(row.text),
