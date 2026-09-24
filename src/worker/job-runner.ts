@@ -34,7 +34,7 @@ const TERMINAL_STATUSES: ScanRunStatus[] = [
   "interrupted",
 ];
 
-/** Bir işi baştan sona yürütür; platform hatası kalan görevleri durdurmaz. */
+/** Runs a job end to end; one platform's failure does not stop the remaining tasks. */
 export async function runJob(run: ScanRunDetail): Promise<JobRunResult> {
   switch (run.kind) {
     case "session_check":
@@ -68,7 +68,7 @@ async function runSessionCheck(run: ScanRunDetail): Promise<JobRunResult> {
         recordSessionCheck({
           platform,
           status: "unsupported",
-          detail: "Adapter kayıtlı değil.",
+          detail: "Adapter is not registered.",
         });
         continue;
       }
@@ -106,8 +106,8 @@ async function runOpenLogin(run: ScanRunDetail): Promise<JobRunResult> {
     finishRun(run.id, "failed", "missing_platform");
     return { status: "failed", stopReason: "missing_platform" };
   }
-  // Giriş penceresi açılır ve kullanıcı girişi yapana kadar beklenir
-  // (en fazla 5 dk); profil kapanırken saklanır.
+  // The login window opens and waits until the user signs in
+  // (up to 5 min); the profile is persisted when it closes.
   const result = await openLoginScreen(platform, { timeoutMs: 5 * 60_000 });
   const status: ScanRunStatus =
     result.status === "logged_in" ? "completed" : result.status === "timeout" ? "partial" : "failed";
@@ -123,11 +123,9 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
   const lastDays = snapshot.filters?.lastDays ?? config.filters.lastDays;
   const city = snapshot.filters?.city ?? null;
 
-  const budgetMs = config.limits.maxRunMinutes * 60 * 1000;
-  const deadline = Date.now() + budgetMs;
   const limiter = createRateLimiter(config.limits.minDelayMs, config.limits.maxDelayMs);
 
-  // Paylaşım tarihi cutoff'u: lastDays paylaşım tarihine uygulanır.
+  // Post-date cutoff: lastDays applies to the post date.
   const publishedCutoff = lastDays ? Date.now() - lastDays * 24 * 3600 * 1000 : null;
 
   let session: Awaited<ReturnType<typeof openOwnedSession>> | null = null;
@@ -139,9 +137,6 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
   }
 
   let platformFailures = 0;
-  let limitReached = false;
-  let runPosts = 0;
-  const platformPosts = new Map<string, number>();
 
   try {
     const page: Page = session.context.pages()[0] ?? (await session.context.newPage());
@@ -151,20 +146,10 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
         updateTask(task.id, { status: "cancelled", finishedAt: nowIso() });
         continue;
       }
-      if (Date.now() > deadline) {
-        updateTask(task.id, { status: "skipped", reasonCode: "run_budget_exhausted" });
-        limitReached = true;
-        continue;
-      }
-      if (runPosts >= config.limits.maxPostsPerRun) {
-        updateTask(task.id, { status: "skipped", reasonCode: "run_post_cap" });
-        limitReached = true;
-        continue;
-      }
-      if ((platformPosts.get(task.platform) ?? 0) >= config.limits.maxPostsPerPlatform) {
-        updateTask(task.id, { status: "skipped", reasonCode: "platform_post_cap" });
-        continue;
-      }
+      // No task skipping: every user-provided word is scanned in this run.
+      // Per-task volume is capped by maxPostsPerQuery/maxScrollsPerQuery and,
+      // if a single query stalls, by a per-task time ceiling (maxRunMinutes);
+      // no task is skipped because of another.
 
       updateTask(task.id, { status: "running", startedAt: nowIso() });
 
@@ -180,20 +165,29 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
 
       try {
         let posts = 0;
+        // Per-task time ceiling: cuts only this query; the remaining
+        // tasks continue without issues.
+        const taskAbort = new AbortController();
+        const taskDeadline = Date.now() + config.limits.maxRunMinutes * 60 * 1000;
+        let taskTimedOut = false;
         for await (const raw of adapter.search(
           {
             queries: [task.query],
             maxPostsPerQuery: config.limits.maxPostsPerQuery,
             maxScrollsPerQuery: config.limits.maxScrollsPerQuery,
-            maxPostsPerPlatform: config.limits.maxPostsPerPlatform,
             lastDays,
             city,
           },
-          { page, limiter, logger: console, signal: new AbortController().signal },
+          { page, limiter, logger: console, signal: taskAbort.signal },
         )) {
           if (isCancelRequested(run.id)) break;
+          if (Date.now() > taskDeadline) {
+            taskTimedOut = true;
+            taskAbort.abort();
+            break;
+          }
 
-          // OCR hattı: afiş adayı görseller varsa metni görselden zenginleştir.
+          // OCR pipeline: enrich the text from poster-candidate images when present.
           let processed: RawPost = raw;
           if (config.ocr.enabled && raw.imageUrls && raw.imageUrls.length > 0) {
             if (isCancelRequested(run.id)) break;
@@ -212,19 +206,19 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
                   ],
                 };
                 console.log(
-                  `OCR: ${task.platform} gönderisine ${ocrText.length} karakter görsel metni eklendi`,
+                  `OCR: added ${ocrText.length} characters of image text to the ${task.platform} post`,
                 );
               }
             } catch (err) {
-              // OCR hatası gönderi kaydını engellemez.
-              console.warn(`OCR atlandı: ${(err as Error).message.slice(0, 120)}`);
+              // An OCR failure does not block persisting the post.
+              console.warn(`OCR skipped: ${(err as Error).message.slice(0, 120)}`);
             }
           }
 
           const draft = adapter.parsePost(processed);
           if (!draft) continue;
 
-          // Katı son-X-gün: bilinen eski paylaşım kayıtlara girmez, ayrıca sayılır.
+          // Strict last-X-days: known-old posts do not enter records and are counted separately.
           if (publishedCutoff && draft.publishedAt) {
             const t = Date.parse(draft.publishedAt);
             if (!Number.isNaN(t) && t < publishedCutoff) {
@@ -239,8 +233,6 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
             taskId: task.id,
           });
           posts++;
-          runPosts++;
-          platformPosts.set(task.platform, (platformPosts.get(task.platform) ?? 0) + 1);
           mergeRunCounters(run.id, {
             uniquePostsScanned: 1,
             postsReseen: result.outcome === "reseen" ? 1 : 0,
@@ -251,14 +243,24 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
             reviewItems: result.outcome === "review" ? 1 : 0,
           });
           if (posts >= config.limits.maxPostsPerQuery) break;
-          if ((platformPosts.get(task.platform) ?? 0) >= config.limits.maxPostsPerPlatform) break;
           await limiter.wait("between-posts");
         }
-        updateTask(task.id, {
-          status: "completed",
-          postsScanned: posts,
-          finishedAt: nowIso(),
-        });
+        if (taskTimedOut) {
+          platformFailures++;
+          updateTask(task.id, {
+            status: "failed",
+            lastError: "task_budget_exhausted",
+            postsScanned: posts,
+            finishedAt: nowIso(),
+          });
+          mergeRunCounters(run.id, { platformErrors: 1 });
+        } else {
+          updateTask(task.id, {
+            status: "completed",
+            postsScanned: posts,
+            finishedAt: nowIso(),
+          });
+        }
       } catch (err) {
         platformFailures++;
         updateTask(task.id, {
@@ -274,7 +276,6 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
   }
 
   let status: ScanRunStatus;
-  let stopReason: string | null = null;
   if (isCancelRequested(run.id)) {
     status = "cancelled";
   } else if (platformFailures > 0) {
@@ -282,10 +283,9 @@ async function runScan(run: ScanRunDetail): Promise<JobRunResult> {
   } else {
     status = "completed";
   }
-  if (limitReached) stopReason = "limit_reached";
 
-  finishRun(run.id, status, stopReason);
-  return { status, stopReason };
+  finishRun(run.id, status, null);
+  return { status, stopReason: null };
 }
 
 export { TERMINAL_STATUSES };

@@ -1,7 +1,7 @@
 export const PLATFORMS = ["linkedin", "x", "instagram", "tiktok"] as const;
 export type Platform = (typeof PLATFORMS)[number];
 
-/** MVP'de etkin olan platformlar; instagram/tiktok ikinci aşama. */
+/** Platforms active in the MVP; instagram/tiktok are a later phase. */
 export const MVP_PLATFORMS: readonly Platform[] = ["linkedin", "x"];
 
 export const SECOND_PHASE_PLATFORMS: readonly Platform[] = ["instagram", "tiktok"];
@@ -10,7 +10,7 @@ export function isPlatform(value: string): value is Platform {
   return (PLATFORMS as readonly string[]).includes(value);
 }
 
-/** `twitter` -> `x` alias'ını da kabul eder. */
+/** Also accepts the `twitter` -> `x` alias. */
 export function normalizePlatform(value: string): Platform | null {
   const lowered = value.toLowerCase();
   if (lowered === "twitter") return "x";
@@ -42,7 +42,7 @@ export interface Author {
   url: string | null;
 }
 
-/** Adapter'ın platformdan ham okuduğu birim; henüz normalize edilmemiş. */
+/** Raw unit read from the platform by the adapter; not normalized yet. */
 export interface RawPost {
   platformPostId: string | null;
   canonicalUrl: string | null;
@@ -51,11 +51,11 @@ export interface RawPost {
   extractedLinks: string[];
   authorName?: string | null;
   authorUrl?: string | null;
-  /** Paylaşıma iliştirilmiş görseller (afiş adayları); avatar/logo hariç. */
+  /** Images attached to the post (poster candidates); avatars/logos excluded. */
   imageUrls?: string[];
 }
 
-/** Adapter'ın parsePost çıktısı; DB'ye yazılmadan önceki taslak. */
+/** Output of the adapter's parsePost; the draft before it is written to the DB. */
 export interface SocialPostDraft {
   platform: Platform;
   platformPostId: string | null;
@@ -72,13 +72,12 @@ export interface SearchOptions {
   queries: string[];
   maxPostsPerQuery: number;
   maxScrollsPerQuery: number;
-  maxPostsPerPlatform: number;
   lastDays: number | null;
   city: string | null;
 }
 
 export interface ScannerContext {
-  /** Worker tarafından verilen tek sekme; adapter kendi browser'ını açmaz. */
+  /** Single page handed over by the worker; the adapter never opens its own browser. */
   page: unknown;
   limiter: { wait(reason?: string): Promise<void> };
   logger: { info(msg: string, ...args: unknown[]): void; warn(msg: string, ...args: unknown[]): void; error(msg: string, ...args: unknown[]): void };
@@ -88,7 +87,7 @@ export interface ScannerContext {
 export interface PlatformScanner {
   readonly platform: Platform;
   readonly capabilities: PlatformCapabilities;
-  /** Selector'lar gerçek tarayıcıda gözlemlenmeden true dönmez. */
+  /** Never returns true before selectors are observed in a real browser. */
   readonly implemented: boolean;
   checkSession(context: ScannerContext): Promise<SessionResult>;
   search(options: SearchOptions, context: ScannerContext): AsyncIterable<RawPost>;

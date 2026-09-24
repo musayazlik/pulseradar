@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * dev/start koordinatörü: Next.js paneli ile tek worker'ı birlikte başlatır.
- * Kullanım: node scripts/dev.mjs [nextArgs...]
+ * dev/start coordinator: launches the Next.js panel together with a single worker.
+ * Usage: node scripts/dev.mjs [nextArgs...]
  */
 import { spawn } from "node:child_process";
 import path from "node:path";
@@ -11,8 +11,8 @@ const mode = process.argv[2] === "--production" ? "production" : "development";
 const nextCmd = process.argv[2] === "--production" ? "start" : "dev";
 const nextArgs = process.argv.slice(3);
 
-// Depo kökü: sinyallerin doğrudan hedef sürece ulaşması için npx zinciri
-// (npm exec -> tsx -> node) yerine gerçek binary'ler process.execPath ile açılır.
+// Repo root: real binaries are opened with process.execPath so signals reach
+// the target process directly, instead of the npx chain (npm exec -> tsx -> node).
 const root = fileURLToPath(new URL("..", import.meta.url));
 const tsxCli = path.join(root, "node_modules/tsx/dist/cli.mjs");
 const nextBin = path.join(root, "node_modules/next/dist/bin/next");
@@ -43,7 +43,7 @@ function spawnChild(name, command, args) {
   child.stderr.on("data", prefix(name));
   child.on("exit", (code) => {
     if (!shuttingDown) {
-      console.error(`[${name}] beklenmedik şekilde çıktı (kod ${code}); tüm süreçler kapatılıyor.`);
+      console.error(`[${name}] exited unexpectedly (code ${code}); shutting down all processes.`);
       shutdown(code ?? 1);
     }
   });
@@ -62,14 +62,14 @@ async function shutdown(code = 0) {
   for (const child of children) {
     if (child.exitCode === null && !child.killed) child.kill("SIGTERM");
   }
-  // Önce tüm çocukların çıkışı beklenir; 5 sn sonra kalanlar zorla öldürülür.
-  // Çocuklar ölmeden çıkılırsa worker yetim kalır ve profili kilitli tutar.
+  // First wait for all children to exit; after 5 s the stragglers are force-killed.
+  // Exiting before the children die leaves the worker orphaned holding its profile lock.
   const killTimer = setTimeout(() => {
     for (const child of children) {
       try {
         child.kill("SIGKILL");
       } catch {
-        // süreç çoktan çıkmış olabilir
+        // the process may have exited already
       }
     }
   }, 5000);

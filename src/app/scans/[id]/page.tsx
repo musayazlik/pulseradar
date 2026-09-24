@@ -15,9 +15,9 @@ export default function ScanDetailPage({
     <div className="space-y-6">
       <div className="reveal">
         <Link href="/scans" className="font-mono text-xs text-muted-foreground hover:text-primary hover:underline">
-          ← taramalar
+          ← scans
         </Link>
-        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Tarama detayı</h1>
+        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Scan detail</h1>
         <p className="mt-1 font-mono text-xs text-muted-foreground">{id}</p>
       </div>
       <ScanProgress runId={id} />

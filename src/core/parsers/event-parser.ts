@@ -11,7 +11,7 @@ import { nowIso } from "../utils/date";
 
 export const PARSER_VERSION = "event-parser/0.1.0";
 
-/** Tek başına yeterli değildir; birden fazla sinyal birlikte değerlendirilir. */
+/** Not sufficient on its own; multiple signals are evaluated together. */
 const INTENT_SIGNALS = [
   "etkinlik", "etkinliği", "meetup", "konferans", "conference", "hackathon",
   "buluşuyoruz", "buluşma", "buluşması", "webinar", "workshop", "seminer",
@@ -20,13 +20,13 @@ const INTENT_SIGNALS = [
   "save the date", "networking", "söyleşi", "soylesi", "panel",
 ];
 
-/** İş ilanı / reklam / geçmiş özeti ayrımı için red sinyalleri. */
+/** Rejection signals to tell apart job ads / promotions / past-event recaps. */
 const NON_EVENT_SIGNALS = [
   "iş ilanı", "is ilani", "pozisyon", "ilanımız var", "ariyoruz",
   "hire", "hiring", "we are looking", "pozisyon arayışı",
 ];
 
-/** Duyuru gücünü artıran ifadeler ("bu yıl ilk kez", "yakında" vb.). */
+/** Phrases that strengthen the announcement ("bu yıl ilk kez", "yakında", etc.). */
 const ANNOUNCEMENT_AMPLIFIERS = [
   "geliyor", "bu yıl", "bu yil", "yakında", "yakinda", "ilk kez",
   "duyurduk", "duyuruyoruz", "takipte kalın", "detaylar yakında",
@@ -50,14 +50,14 @@ export interface ExtractedEventCandidate {
   registrationUrl: string | null;
   confidence: number;
   evidenceJson: string;
-  /** Açık tarih yoksa true; kayıt incelemeye düşer. */
+  /** True when no explicit date exists; the record goes to review. */
   needsReview: boolean;
 }
 
 /**
- * Bir paylaşım birden çok etkinlik içerebilir; bu yüzden liste döner.
- * Şimdilik en güçlü aday tekil çıkarılır; çoklu etkinlik ayrıştırması
- * Aşama 4'te derinleştirilir.
+ * A post may contain multiple events; that is why a list is returned.
+ * For now the strongest candidate is extracted singly; multi-event parsing
+ * is deepened in Phase 4.
  */
 export function extractEventCandidates(
   post: SocialPostDraft,
@@ -80,9 +80,9 @@ export function extractEventCandidates(
       now.getTime() - 24 * 3600 * 1000,
   );
 
-  // Açık gelecek etkinlik tarihi yoksa: güçlü duyurusa incelemeye bırak.
+  // No explicit future event date: send strong announcements to review.
   if (futureDates.length === 0) {
-    // Güçlü duyuru: birden fazla sinyal birlikte — etkinlik adı + yer/zaman ipucu.
+    // Strong announcement: multiple signals together — event name + venue/time hint.
     const contextSignal =
       location.city !== null ||
       location.attendanceMode === "online" ||
@@ -145,14 +145,14 @@ function buildCandidate(
     endDate: date?.date ?? null,
     startTime: date?.time ?? null,
     endTime: null,
-    // Saat dilimi varsayımı yalnızca ülke bağlamıyla ve çıkarım olarak.
+    // Time zone assumption only with country context, marked as an inference.
     timeZone: post.publishedAt ? opts.defaultTimeZone : null,
     datePrecision: (date?.precision as DatePrecision) ?? "unknown",
     venue: location.venue,
     city: location.city,
     country: location.city ? "TR" : null,
     attendanceMode: location.attendanceMode as AttendanceMode,
-    // Paylaşan hesap otomatik organizatör kabul edilmez.
+    // The posting account is not automatically treated as the organizer.
     organizer: null,
     registrationUrl: registrationCandidates[0] ?? null,
     confidence: opts.confidence,
@@ -162,7 +162,7 @@ function buildCandidate(
 }
 
 function deriveTitle(rawText: string, intentHits: string[]): string {
-  // İlk cümle/ilk satır başlık adayıdır; kayıt bağlantısı ve uzun açıklama hariç.
+  // The first sentence/line is the title candidate; registration links and long descriptions excluded.
   const firstLine = rawText
     .split(/\n+/)
     .map((l) => l.trim())

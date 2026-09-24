@@ -31,7 +31,7 @@ export async function POST(req: NextRequest): Promise<Response> {
   try {
     body = await req.json();
   } catch {
-    return jsonError("geçersiz JSON", 400);
+    return jsonError("invalid JSON", 400);
   }
 
   const parsed = createSchema.safeParse(body);
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   try {
     const detail = createScanRun(parsed.data);
-    // İş veritabanına kaydedildi; worker sıradaki işi alır.
+    // Job persisted to the DB; the worker picks up the next job.
     return Response.json(
       { runId: detail.id, status: detail.status },
       { status: 202 },

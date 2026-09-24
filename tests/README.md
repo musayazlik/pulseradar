@@ -1,9 +1,9 @@
 # tests/
 
-- `fixtures/` — parser testleri için örnek ham veriler.
-- `parsers/` — date/location/event/url parser testleri.
-- `dedup/` — duplicate kararları ve DB entegre ingest testleri.
-- `jobs/` — kuyruk sahiplenme, heartbeat, kurtarma testleri (Aşama 6'da dolacak).
-- `e2e/` — Playwright kabul senaryoları (canlı tarayıcı doğrulaması, Aşama 3+).
+- `fixtures/` — sample raw data for parser tests.
+- `parsers/` — date/location/event/url parser tests.
+- `dedup/` — duplicate decisions and DB-integrated ingest tests.
+- `jobs/` — queue claiming, heartbeat and recovery tests (filled in Phase 6).
+- `e2e/` — Playwright acceptance scenarios (live browser verification, Phase 3+).
 
-Canlı tarayıcı testleri kullanıcı MakBook'unda doğrulanmadan "tamamlandı" işaretlenmez.
+Live browser tests are not marked "done" until verified on the user's MacBook.

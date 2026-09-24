@@ -1,6 +1,6 @@
 import { extractUrls, normalizeUrl } from "../utils/url";
 
-/** Kayıt/etkinlik sayfası olabilecek bağlantılar için ipuçları. */
+/** Hints for links that may be registration/event pages. */
 const REGISTRATION_HINTS = [
   "lu.ma", "luma.com", "eventbrite.com", "meetup.com", "kommunity.com",
   "forms.gle", "docs.google.com/forms", "zoom.us", "register", "kayit",
@@ -9,7 +9,7 @@ const REGISTRATION_HINTS = [
 
 export interface UrlParseResult {
   links: string[];
-  /** Kayıt bağlantısı olabilecek adaylar (kanıtla birlikte alan dışı tahmin). */
+  /** Candidates that may be registration links (off-field guess, with evidence). */
   registrationCandidates: string[];
 }
 

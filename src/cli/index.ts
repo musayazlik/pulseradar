@@ -23,14 +23,14 @@ async function main(): Promise<number> {
     case "doctor":
       return runDoctorCommand();
     default:
-      console.log(`Kullanım:
+      console.log(`Usage:
   npm run search -- --platform=linkedin
   npm run search -- --platform=x --city=istanbul --keyword=startup --days=14
   npm run search -- --hashtag=hackathon
   npm run events -- --city=eskisehir
   npm run doctor
 
-Not: --platform=twitter değeri x için alias kabul edilir.`);
+Note: --platform=twitter is accepted as an alias for x.`);
       return command ? 1 : 0;
   }
 }

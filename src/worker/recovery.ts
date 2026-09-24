@@ -7,8 +7,8 @@ import {
 import type { ScanRunStatus } from "../core/types/scan";
 
 /**
- * Uygulama kapanması/uyku sonrası lease süresi dolan işler `interrupted`
- * işaretlenir; görevler son kontrol noktasından idempotent yeniden denenebilir.
+ * After a crash/sleep, jobs whose lease expired are marked `interrupted`;
+ * tasks can be retried idempotently from their last checkpoint.
  */
 export function markInterruptedRuns(): number {
   const expired = listExpiredRunningRuns();

@@ -41,7 +41,7 @@ export async function runSearchCommand(flags: Record<string, string>): Promise<n
       lastDays: flags.days ? Number(flags.days) : undefined,
     });
     runId = run.id;
-    console.log(`Tarama kuyruğa alındı: ${runId}`);
+    console.log(`Scan queued: ${runId}`);
   } catch (err) {
     if (err instanceof ScanValidationError) {
       console.error(err.message);
@@ -56,26 +56,26 @@ export async function runSearchCommand(flags: Record<string, string>): Promise<n
     : Infinity;
 
   if (heartbeatAge >= 90_000) {
-    // Mevcut worker yok: tek seferlik worker'ı profil kilidiyle dene.
+    // No existing worker: try a one-shot worker under the profile lock.
     let ownsLock = false;
     try {
       acquireProfileLock();
       ownsLock = true;
     } catch (err) {
-      console.log(`Profil kilidi alınamadı: ${(err as Error).message}`);
-      console.log("İş kuyrukta; panel çalışıyorsa worker'ı işleyecek.");
+      console.log(`Could not acquire the profile lock: ${(err as Error).message}`);
+      console.log("Job stays queued; the panel worker will pick it up if running.");
     }
 
     if (ownsLock) {
       markInterruptedRuns();
-      console.log("Tek seferlik worker: iş bu süreçte yürütülecek.");
+      console.log("One-shot worker: the job will run in this process.");
       await executeRunsUntilTerminal(runId);
       releaseProfileLock();
       getSqlite().close();
       return 0;
     }
   } else {
-    console.log("Mevcut worker çalışıyor; ilerleme izleniyor…");
+    console.log("Existing worker is running; following progress…");
   }
 
   await waitForTerminal(runId);
@@ -85,7 +85,7 @@ export async function runSearchCommand(flags: Record<string, string>): Promise<n
 
 let isLockOwnedByUs = false;
 
-/** Kuyruktaki işleri sırayla yürütür; hedef iş terminal olana dek. */
+/** Executes queued jobs in order until the target job reaches a terminal state. */
 async function executeRunsUntilTerminal(targetRunId: string): Promise<void> {
   for (;;) {
     const run = claimNextRun(`cli-${process.pid}`, 5 * 60_000);
@@ -97,12 +97,12 @@ async function executeRunsUntilTerminal(targetRunId: string): Promise<void> {
     }
     const detail = getRunDetail(run.id);
     if (!detail) continue;
-    console.log(`İş yürütülüyor: ${detail.kind} ${detail.id.slice(0, 8)}`);
+    console.log(`Running job: ${detail.kind} ${detail.id.slice(0, 8)}`);
     try {
       const result = await runJob(detail);
-      console.log(`İş bitti: ${result.status}${result.stopReason ? ` (${result.stopReason})` : ""}`);
+      console.log(`Job finished: ${result.status}${result.stopReason ? ` (${result.stopReason})` : ""}`);
     } catch (err) {
-      console.error(`İş hatası: ${(err as Error).message}`);
+      console.error(`Job error: ${(err as Error).message}`);
     }
     const target = getRunDetail(targetRunId);
     if (target && TERMINAL.has(target.status)) return;
@@ -113,7 +113,7 @@ async function waitForTerminal(runId: string): Promise<void> {
   for (;;) {
     const detail = getRunDetail(runId);
     if (!detail) {
-      console.error("Tarama bulunamadı.");
+      console.error("Scan not found.");
       return;
     }
     if (TERMINAL.has(detail.status)) {
@@ -125,12 +125,12 @@ async function waitForTerminal(runId: string): Promise<void> {
 }
 
 function printSummary(detail: NonNullable<ReturnType<typeof getRunDetail>>): void {
-  console.log(`Sonuç: ${detail.status}${detail.stopReason ? ` (${detail.stopReason})` : ""}`);
+  console.log(`Result: ${detail.status}${detail.stopReason ? ` (${detail.stopReason})` : ""}`);
   const c = detail.counters;
   console.log(
-    `Paylaşımlar: ${c.uniquePostsScanned} benzersiz, ${c.postsReseen} yeniden; ` +
-      `etkinlik: ${c.eventsCreated} yeni, ${c.candidatesMerged} birleşen, ${c.reviewItems} inceleme; ` +
-      `platform hataları: ${c.platformErrors}`,
+    `Posts: ${c.uniquePostsScanned} unique, ${c.postsReseen} seen again; ` +
+      `events: ${c.eventsCreated} new, ${c.candidatesMerged} merged, ${c.reviewItems} review; ` +
+      `platform errors: ${c.platformErrors}`,
   );
 }
 

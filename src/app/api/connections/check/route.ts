@@ -19,7 +19,7 @@ export async function POST(req: NextRequest): Promise<Response> {
     const parsedBody = await req.json();
     body = parsedBody;
   } catch {
-    // gövde yoksa varsayılan: MVP platformları
+    // default when no body: MVP platforms
   }
 
   const parsed = bodySchema.safeParse(body);

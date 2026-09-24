@@ -3,9 +3,9 @@ import type { EventRecord } from "../types/event";
 import type { SocialPostRecord } from "../types/post";
 
 export type DuplicateAction =
-  | "skip" // aynı kaynak gönderi: gözlem ilişkisi güncellenir
-  | "merge" // güçlü eşleşme: kaynak bağlantıları korunarak birleştirilir
-  | "review" // otomatik kararı güvenli değil: ReviewItem
+  | "skip" // same source post: the observation relation is updated
+  | "merge" // strong match: merged with source links preserved
+  | "review" // automatic decision is not safe: ReviewItem
   | "create"; // yeni etkinlik
 
 export type DuplicateDecision =
@@ -13,11 +13,11 @@ export type DuplicateDecision =
   | { action: "merge"; reason: string; existingEventId: string };
 
 export interface DuplicateInputs {
-  /** Bu paylaşım daha önce kaydedilmiş mi? */
+  /** Has this post been recorded before? */
   sourcePost: SocialPostRecord | null;
-  /** Kaynak gönderinin bağlı olduğu etkinlikler. */
+  /** Events the source post is linked to. */
   postEventIds: string[];
-  /** Kayıt URL'siyle bulunan aday. */
+  /** Candidate found via the registration URL. */
   existingByRegistrationUrl: EventRecord | null;
   /** normalizedTitle (+ tarih) ile bulunan aday. */
   existingByTitleAndDate: EventRecord | null;
@@ -28,21 +28,21 @@ function datesCompatible(
   existing: EventRecord | null,
   startDate: string | null,
 ): boolean {
-  if (!existing || !existing.startDate || !startDate) return true; // eksik bilgi çelişki sayılmaz
+  if (!existing || !existing.startDate || !startDate) return true; // missing info is not a conflict
   return existing.startDate === startDate;
 }
 
 /**
- * Saf karar fonksiyonu; DB erişimi çağıran taraftadır (test edilebilirlik için).
- * Sıra: aynı kaynak gönderi → kayıt URL'si → başlık+tarih → inceleme → yeni.
+ * Pure decision function; DB access belongs to the caller (for testability).
+ * Order: same source post → registration URL → title+date → review → new.
  */
 export function decideDuplicate(inputs: DuplicateInputs): DuplicateDecision {
-  // 1) Aynı kaynak gönderi: yeni etkinlik açılmaz, gözlem güncellenir.
+  // 1) Same source post: no new event, update the observation.
   if (inputs.sourcePost && inputs.postEventIds.length > 0) {
     return { action: "skip", reason: "same_source_post", existingEventId: null };
   }
 
-  // 2) Etkinliğe özel kayıt URL'si ve uyumlu tarih: güçlü eşleşme.
+  // 2) Event-specific registration URL and compatible date: strong match.
   if (
     inputs.existingByRegistrationUrl &&
     datesCompatible(inputs.existingByRegistrationUrl, inputs.candidateStartDate)
@@ -54,7 +54,7 @@ export function decideDuplicate(inputs: DuplicateInputs): DuplicateDecision {
     };
   }
 
-  // 3) Benzer başlık + aynı tarih: güçlü eşleşme adayı.
+  // 3) Similar title + same date: strong match candidate.
   if (
     inputs.existingByTitleAndDate &&
     datesCompatible(inputs.existingByTitleAndDate, inputs.candidateStartDate)
@@ -66,16 +66,16 @@ export function decideDuplicate(inputs: DuplicateInputs): DuplicateDecision {
     };
   }
 
-  // 4) Benzer başlık ama eksik/çelişen tarih: otomatik birleştirme yapılmaz.
+  // 4) Similar title but missing/conflicting date: no automatic merge.
   if (inputs.existingByTitleAndDate) {
     return { action: "review", reason: "title_matches_date_differs", existingEventId: null };
   }
 
-  // 5) Aynı seri adı ve farklı tarihler ayrı etkinliktir → create zaten düşer.
+  // 5) Same series name with different dates is a separate event → create handles it.
   return { action: "create", reason: "no_match", existingEventId: null };
 }
 
-/** UTM temizlenmiş karşılaştırma URL'si. */
+/** Comparison URL with UTM stripped. */
 export function comparableRegistrationUrl(url: string | null): string | null {
   return normalizeUrl(url);
 }

@@ -5,7 +5,7 @@ export default defineConfig({
     include: ["tests/**/*.test.ts"],
     environment: "node",
     testTimeout: 15000,
-    // better-sqlite3 native modülü forks pool'unda segfault verebiliyor.
+    // The better-sqlite3 native module can segfault in the forks pool.
     pool: "threads",
   },
   resolve: {

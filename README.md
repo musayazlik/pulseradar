@@ -1,30 +1,31 @@
-# Etkinlik Radarı
+# Event Radar
 
-MacBook'ta çalışan kişisel etkinlik keşif uygulaması. Next.js paneli, API katmanı,
-CLI ve worker aynı TypeScript tiplerini paylaşır; tüm veri ve tarayıcı oturumu
-bilgisayarda kalır. Mimari kararlar için `etkinlik-radari-nextjs-mimari.md`
-belgesine bakın.
+A personal event-discovery app that runs on a MacBook. The Next.js panel, the
+API layer, the CLI and the worker all share the same TypeScript types; all data
+and browser sessions stay on your machine. See `architecture.md` for the
+architecture decisions.
 
-## Kurulum
+## Setup
 
 ```bash
 npm install
-npm run db:migrate   # veri dizininde şemayı oluşturur
-npm run doctor       # ortam kontrolü
+npm run db:migrate   # creates the schema in the data directory
+npm run doctor       # environment check
 ```
 
-Veri köğü: `~/Library/Application Support/EventRadar/`
-(`EVENT_RADAR_DATA_DIR` ile değiştirilebilir, bkz. `.env.example`).
+Data root: `~/Library/Application Support/EventRadar/`
+(override with `EVENT_RADAR_DATA_DIR`, see `.env.example`).
 
-## Çalıştırma
+## Running
 
 ```bash
-npm run dev      # Next.js paneli + tek worker birlikte
-npm run start    # production paneli + worker birlikte
-npm run worker   # yalnızca worker (ayrı terminal)
+npm run dev      # Next.js panel + single worker together
+npm run start    # production panel + worker together
+npm run worker   # worker only (separate terminal)
 ```
 
-Panel `http://127.0.0.1:3000` adresinde yayınlanır; MVP internete açılmaz.
+The panel is served at `http://127.0.0.1:3000`; the MVP is not exposed to the
+internet.
 
 ## CLI
 
@@ -36,25 +37,26 @@ npm run events -- --city=eskisehir
 npm run doctor
 ```
 
-`--platform=twitter` değeri `x` için alias kabul edilir. Mevcut worker yoksa
-`search` tek seferlik worker'ı profil kilidiyle başlatır.
+`--platform=twitter` is accepted as an alias for `x`. If no worker is running,
+`search` starts a one-shot worker guarded by the profile lock.
 
-## Komutlar
+## Commands
 
-| Komut | İşlev |
+| Command | Purpose |
 | --- | --- |
-| `npm run dev` / `start` | Panel + worker koordinatörü |
-| `npm run worker` | Tek başına worker |
-| `npm run doctor` | Node/Chrome/DB/config/kilit/worker kontrolü |
-| `npm run search` | Tarama kuyruğa alma + ilerleme izleme |
-| `npm run events` | Etkinlikleri listeleme |
-| `npm run db:generate` | Drizzle migration üretme |
-| `npm run db:migrate` | Şemayı veri dizinine uygula |
-| `npm test` | Vitest (parser/dedup) |
+| `npm run dev` / `start` | Panel + worker coordinator |
+| `npm run worker` | Standalone worker |
+| `npm run doctor` | Node/Chrome/DB/config/lock/worker check |
+| `npm run search` | Queue scans + follow progress |
+| `npm run events` | List events |
+| `npm run db:generate` | Generate a Drizzle migration |
+| `npm run db:migrate` | Apply the schema to the data directory |
+| `npm test` | Vitest (parsers/dedup) |
 
-## Durum
+## Status
 
-Aşama 1 tamamlandı: panel ekranları, API uçları, SQLite şeması/migration,
-worker kuyruğu (atomik sahiplenme + heartbeat + kurtarma), profil kilidi ve CLI
-iskeleti. LinkedIn/X adapter'ları ile gerçek arama (Aşama 3-5) henüz bağlı değil;
-görevler `not_implemented` olarak atlanır. Instagram/TikTok ikinci aşamadadır.
+Phase 1 is complete: panel screens, API endpoints, SQLite schema/migration,
+worker queue (atomic claiming + heartbeat + recovery), profile lock and the
+CLI skeleton. Real search with the LinkedIn/X adapters (Phases 3-5) is wired
+in for LinkedIn and X; unsupported jobs are skipped as `not_implemented`.
+Instagram/TikTok are stubs for a later phase.

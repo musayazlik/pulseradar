@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Radar işareti: dönen tarama huzmeli konsol logosu. Saf CSS;
- * prefers-reduced-motion'da huzme döner.
+ * Radar mark: console logo with a rotating scan beam. Pure CSS; the beam
+ * spins unless prefers-reduced-motion is set.
  */
 export function RadarMark({
   size = 40,
@@ -23,10 +23,10 @@ export function RadarMark({
       )}
     >
       {active && <span className="radar-scope absolute inset-0 rounded-full" />}
-      {/* halkalar */}
+      {/* rings */}
       <span className="absolute inset-[18%] rounded-full border border-primary/25" />
       <span className="absolute inset-[38%] rounded-full border border-primary/25" />
-      {/* merkez + hedef noktası */}
+      {/* center + target dot */}
       <span className="relative size-1 rounded-full bg-primary phosphor-ring" />
       <span className="absolute left-[30%] top-[26%] size-1 rounded-full bg-primary/90" />
     </span>

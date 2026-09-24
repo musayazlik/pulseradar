@@ -26,8 +26,8 @@ interface ExtractedRow {
 }
 
 /**
- * Kartın çeviri altyapısı `id` özniteliğine gönderinin URN kimliğini gömer:
- * shareId=... veya userGeneratedContentId=... → gerçek permalink kurulabilir.
+ * The card's translation infrastructure embeds the post's URN id in the `id`
+ * attribute: shareId=... or userGeneratedContentId=... → a real permalink can be built.
  */
 export function permalinkFromCommentaryId(
   idAttr: string,
@@ -50,8 +50,8 @@ export function permalinkFromCommentaryId(
 }
 
 /**
- * "4 hafta •" gibi göreli tarih metnini yaklaşık ISO zamanına çevirir.
- * LinkedIn arama DOM'unda <time> öğesi yok; hassasiyet gündür.
+ * Converts relative date text like "4 hafta •" into an approximate ISO time.
+ * LinkedIn search DOM has no <time> element; precision is days.
  */
 function relativeToIso(rawText: string | null): string | null {
   if (!rawText) return null;
@@ -76,12 +76,12 @@ function relativeToIso(rawText: string | null): string | null {
 }
 
 /**
- * Yeni LinkedIn arayüzü hash'li CSS sınıfları kullanır; sonuç kartları
- * "Faaliyet akışı gönderisi" başlığıyla bulunur. Post permalink'i DOM'da
- * yer almaz; kaynak URL'i yazar profili + metinden kararlı URN ile üretilir.
+ * The new LinkedIn UI uses hashed CSS classes; result cards are found by the
+ * "Faaliyet akışı gönderisi" title (= feed post, Turkish UI). The post permalink is not
+ * in the DOM; the source URL is produced from the author profile + text as a stable URN.
  *
- * Gövde string olarak verilir: tsx/esbuild transpilasyonu evaluate içine
- * sızmasın diye.
+ * The body is passed as a string so tsx/esbuild transpilation does not
+ * leak into evaluate.
  */
 const EXTRACT_POSTS_SNIPPET = `(() => {
   const headings = [...document.querySelectorAll("h2 span")].filter((s) =>
@@ -113,13 +113,13 @@ const EXTRACT_POSTS_SNIPPET = `(() => {
       .filter((l) => l.trim() !== "Faaliyet akışı gönderisi")
       .join("\\n")
       .trim();
-    // Afiş adayları: avatar/logo küçük varyantları dışındaki medya görselleri.
-    // Not: bugünkü liste görünümünde post afişleri DOM'da yok; DOM değişirse
-    // OCR hattı otomatik beslenir.
+    // Poster candidates: media images other than avatar/logo small variants.
+    // Note: today's list view has no post posters in the DOM; if the DOM changes,
+    // the OCR pipeline will feed automatically.
     const images = [...card.querySelectorAll("img")]
       .map((i) => i.getAttribute("src") || "")
       .filter((s) => s.includes("media.licdn.com") && !/shrink_\\d+_\\d+|company-logo/.test(s));
-    // Gerçek permalink: çeviri altyapısı id'sine gömülü share/ugc kimliği.
+    // Real permalink: the share/ugc id embedded in the translation infrastructure id.
     const commentary = card.querySelector('[id^="translatable-commentary-"]');
     const idAttr = commentary ? commentary.getAttribute("id") || "" : "";
     const shareMatch = idAttr.match(/shareId=(\\d+)/);
@@ -148,7 +148,7 @@ async function extractPosts(page: Page): Promise<ExtractedRow[]> {
   return page.evaluate(EXTRACT_POSTS_SNIPPET) as Promise<ExtractedRow[]>;
 }
 
-/** Yazar + metinden kararlı sentetik kaynak URL'i (permalink DOM'da yok). */
+/** Stable synthetic source URL built from author + text (no permalink in the DOM). */
 function syntheticPermalink(authorUrl: string | null, text: string): string {
   const key = `${authorUrl ?? ""}|${text.slice(0, 140).toLowerCase()}`;
   const hash = createHash("sha1").update(key).digest("hex").slice(0, 16);
@@ -181,7 +181,7 @@ export const linkedinScanner: PlatformScanner = {
           platform: "linkedin",
           status: "challenge",
           checkedAt: nowIso(),
-          detail: "LinkedIn doğrulama (checkpoint) sayfasına yönlendirdi.",
+          detail: "LinkedIn redirected to a verification (checkpoint) page.",
         };
       }
       if (state.hasLogin) {
@@ -189,7 +189,7 @@ export const linkedinScanner: PlatformScanner = {
           platform: "linkedin",
           status: "login_required",
           checkedAt: nowIso(),
-          detail: `Oturum yok (${state.url}). Bağlantılar ekranından giriş yapın.`,
+          detail: `No session (${state.url}). Sign in from the Connections screen.`,
         };
       }
       if (/feed|faaliyet/i.test(state.title) && state.url.includes("/feed/")) {
@@ -200,7 +200,7 @@ export const linkedinScanner: PlatformScanner = {
         platform: "linkedin",
         status: "unsupported",
         checkedAt: nowIso(),
-        detail: `Feed doğrulanamadı; kanıt kaydedildi: ${evidence}`,
+        detail: `Feed could not be verified; evidence saved: ${evidence}`,
       };
     } catch (err) {
       return {
@@ -222,7 +222,6 @@ export const linkedinScanner: PlatformScanner = {
       queries: [query],
       maxPostsPerQuery: options.maxPostsPerQuery,
       maxScrollsPerQuery: options.maxScrollsPerQuery,
-      maxPostsPerPlatform: options.maxPostsPerPlatform,
       lastDays: options.lastDays,
       city: options.city,
     });
@@ -242,7 +241,7 @@ export const linkedinScanner: PlatformScanner = {
 
       const rows = await extractPosts(page);
       for (const row of rows) {
-        // Aynı gönderi için öncelik: gerçek postId; yoksa metin parmak izi.
+        // Priority for the same post: the real postId; otherwise the text fingerprint.
         const key = row.postId ?? `txt:${row.text.slice(0, 140).toLowerCase()}`;
         if (!row.text || seen.has(key)) continue;
         seen.add(key);
@@ -261,8 +260,8 @@ export const linkedinScanner: PlatformScanner = {
         if (yielded >= options.maxPostsPerQuery) return;
       }
 
-      // İlk turda hiç sonuç yoksa DOM kanıtını sakla ("sonuç yok" mu, "DOM
-      // değişti" mi ayrımı için).
+      // If the first round has no results, save the DOM evidence (to tell "no
+      // results" and "DOM changed" apart).
       if (yielded === 0 && scroll === 0) {
         await captureDebug(page, "linkedin", `search-empty-${safeQuery}`);
       }

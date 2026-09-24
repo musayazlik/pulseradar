@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Konsol okuma karo: mono Büyük harf etiket + büyük tabular sayı.
+ * Console readout tile: mono uppercase label + large tabular number.
  */
 export function StatTile({
   label,
@@ -31,7 +31,7 @@ export function StatTile({
         className,
       )}
     >
-      {/* köşe imi: konsol paneli hissi */}
+      {/* corner mark: console panel feel */}
       <span
         aria-hidden
         className="absolute right-0 top-0 h-2 w-2 border-b border-r border-primary/30"

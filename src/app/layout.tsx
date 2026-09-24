@@ -23,14 +23,14 @@ const firaCode = Fira_Code({
 });
 
 export const metadata: Metadata = {
-  title: "Etkinlik Radarı",
-  description: "Kişisel etkinlik keşif konsolu",
+  title: "Event Radar",
+  description: "Personal event discovery console",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="tr"
+      lang="en"
       className={`dark ${chakraPetch.variable} ${firaSans.variable} ${firaCode.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">

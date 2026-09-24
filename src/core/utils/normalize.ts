@@ -1,4 +1,4 @@
-/** Türkçe karakterleri sadeleştirip küçük harfe çevirir (İstanbul -> istanbul). */
+/** Folds Turkish characters to ASCII lowercase (İstanbul -> istanbul). */
 export function normalizeTurkish(text: string): string {
   return text
     .replaceAll("İ", "i")
@@ -20,7 +20,7 @@ export function normalizeCity(city: string | null | undefined): string | null {
   return cleaned.length > 0 ? cleaned : null;
 }
 
-/** Duplicate karşılaştırmaları için başlık anahtarı. */
+/** Title key for duplicate comparisons. */
 export function normalizeTitle(title: string): string {
   return normalizeTurkish(title)
     .replace(/[^\p{L}\p{N}]+/gu, " ")

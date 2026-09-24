@@ -12,7 +12,7 @@ export function getBrowserMode(): BrowserMode {
 export function getCdpUrl(): string | null {
   const url = process.env.EVENT_RADAR_CDP_URL;
   if (!url) return null;
-  // CDP yalnızca loopback adresine bağlanır.
+  // CDP connects to loopback addresses only.
   try {
     const parsed = new URL(url);
     if (!["127.0.0.1", "localhost", "[::1]"].includes(parsed.hostname)) {
@@ -25,8 +25,8 @@ export function getCdpUrl(): string | null {
 }
 
 /**
- * Uygulamaya ayrılmış kalıcı profil; ilk kullanımda kullanıcı girişi
- * tarayıcıda yapılır, profil sonraki çalıştırmalarda saklanır.
+ * App-dedicated persistent profile; the user signs in via the browser on
+ * first use and the profile is kept for later runs.
  */
 export async function launchPersistentContext(): Promise<BrowserContext> {
   const profileDir = getBrowserProfileDir();
@@ -35,8 +35,8 @@ export async function launchPersistentContext(): Promise<BrowserContext> {
     channel: "chrome",
     headless: false,
     viewport: null,
-    // Google SSO, otomasyon bayrağı gördüğünde "bu tarayıcı güvenli değil"
-    // diye reddediyor; izi azaltıyoruz (hesap girişi yine kullanıcıya ait).
+    // Google SSO rejects the browser as "not secure" when it sees automation
+    // flags; we reduce the footprint (the account sign-in still belongs to the user).
     ignoreDefaultArgs: ["--enable-automation"],
     args: [
       "--no-first-run",
@@ -46,12 +46,12 @@ export async function launchPersistentContext(): Promise<BrowserContext> {
   });
 }
 
-/** CDP modu: kullanıcının debugging açık Chrome'una bağlanır. */
+/** CDP mode: connects to the user's Chrome with debugging enabled. */
 export async function connectOverCdp(): Promise<{ browser: Browser; context: BrowserContext }> {
   const url = getCdpUrl();
   if (!url) {
     throw new Error(
-      "EVENT_RADAR_CDP_URL ayarlı değil veya loopback dışında. Chrome'u ayrı bir veri diziniyle --remote-debugging-port=9222 ile başlatın.",
+      "EVENT_RADAR_CDP_URL is not set or is not loopback. Start Chrome with a separate data directory and --remote-debugging-port=9222.",
     );
   }
   const browser = await chromium.connectOverCDP(url);
@@ -65,7 +65,7 @@ export interface OwnedBrowserSession {
   close(): Promise<void>;
 }
 
-/** Worker yalnızca kendi açtığı context'i kapatır; kullanıcının tarayıcısını kapatmaz. */
+/** The worker closes only the context it opened; never the user's browser. */
 export async function openOwnedSession(): Promise<OwnedBrowserSession> {
   const mode = getBrowserMode();
   if (mode === "cdp") {

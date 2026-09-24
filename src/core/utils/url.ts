@@ -1,4 +1,4 @@
-/** Bilinen takip parametreleri temizlenir; diğer query parametreleri korunur. */
+/** Known tracking parameters are stripped; other query parameters are kept. */
 const TRACKING_PARAMS = new Set([
   "utm_source",
   "utm_medium",
@@ -18,8 +18,8 @@ const TRACKING_PARAMS = new Set([
 ]);
 
 /**
- * Geçerli http/https URL'sini normalize eder; geçersizse null döner.
- * Etkinlik ID'si taşıyan bilinmeyen parametreler korunur.
+ * Normalizes a valid http/https URL; returns null when invalid.
+ * Unknown parameters that carry event ids are kept.
  */
 export function normalizeUrl(raw: string | null | undefined): string | null {
   if (!raw) return null;
@@ -45,7 +45,7 @@ export function normalizeUrl(raw: string | null | undefined): string | null {
   return out;
 }
 
-/** Serbest metinden http/https bağlantılarını çıkarır. */
+/** Extracts http/https links from free text. */
 export function extractUrls(text: string): string[] {
   const matches = text.match(/https?:\/\/[^\s<>"')\]]+/g) ?? [];
   const seen = new Set<string>();

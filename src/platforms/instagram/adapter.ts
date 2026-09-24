@@ -8,7 +8,7 @@ import type {
   SocialPostDraft,
 } from "../../core/types/platform";
 
-/** İkinci aşama adapterı: gerçek arama kabiliyeti canlı testle doğrulanacak. */
+/** Second-phase adapter: real search capability will be verified with a live test. */
 export const instagramScanner: PlatformScanner = {
   platform: "instagram",
   capabilities: { keywordSearch: false, hashtagSearch: false, nativeDateFilter: false },
@@ -19,7 +19,7 @@ export const instagramScanner: PlatformScanner = {
       platform: "instagram",
       status: "unsupported",
       checkedAt: new Date().toISOString(),
-      detail: "Instagram ikinci aşamada etkin olacak.",
+      detail: "Instagram becomes active in a later phase.",
     };
   },
 

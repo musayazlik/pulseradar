@@ -29,7 +29,7 @@ function spawnChild(name, command, args) {
   child.stderr.on("data", prefix(name));
   child.on("exit", (code) => {
     if (!shuttingDown) {
-      console.error(`[${name}] beklenmedik şekilde çıktı (kod ${code}).`);
+      console.error(`[${name}] exited unexpectedly (code ${code}).`);
       shutdown(code ?? 1);
     }
   });

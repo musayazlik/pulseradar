@@ -1,13 +1,13 @@
 const LOCAL_HOSTS = new Set(["127.0.0.1", "localhost", "[::1]", "::1"]);
 
-/** MVP panel yalnızca 127.0.0.1'de yayınlanır. */
+/** The MVP panel is served on 127.0.0.1 only. */
 export function isLocalRequest(req: Request): boolean {
   const host = req.headers.get("host");
   if (!host) return false;
   const hostName = host.split(":")[0];
   if (!LOCAL_HOSTS.has(hostName)) return false;
 
-  // Değişiklik yapan isteklerde Origin (varsa) de yerel olmalı.
+  // Mutating requests must also have a local Origin (when present).
   const origin = req.headers.get("origin");
   if (origin) {
     try {

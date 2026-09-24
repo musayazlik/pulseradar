@@ -2,8 +2,8 @@ import type { SearchOptions } from "../../core/types/platform";
 import { X_BASE_URL } from "./selectors";
 
 /**
- * X'te native tarih filtresi yok; `since:` operatörü kullanılır ve
- * sonuçlar publishedAt ile de kontrol edilir.
+ * X has no native date filter; the `since:` operator is used and
+ * results are re-checked against publishedAt.
  */
 export function buildXSearchUrl(options: SearchOptions): string {
   const query = options.queries[0] ?? "";

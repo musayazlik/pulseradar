@@ -7,8 +7,8 @@ import {
 import { searchConfigSchema } from "../../src/core/config/schema";
 import { DEFAULT_SEARCH_CONFIG } from "../../src/core/config/defaults";
 
-describe("ocr görsel filtresi", () => {
-  it("X medya görsellerini tutar, profil fotoğraflarını eler", () => {
+describe("ocr image filter", () => {
+  it("keeps X media images, filters out profile photos", () => {
     const kept = filterPosterImages([
       "https://pbs.twimg.com/media/GxHack.jpg?format=jpg&name=medium",
       "https://pbs.twimg.com/profile_images/123/me_normal.jpg",
@@ -18,7 +18,7 @@ describe("ocr görsel filtresi", () => {
     ]);
   });
 
-  it("LinkedIn avatar/logolarını eler", () => {
+  it("filters out LinkedIn avatars/logos", () => {
     const kept = filterPosterImages([
       "https://media.licdn.com/dms/image/D4E.../profile-framedphoto-shrink_100_100/...",
       "https://media.licdn.com/dms/image/C56.../company-logo_100_100/...",
@@ -28,7 +28,7 @@ describe("ocr görsel filtresi", () => {
     expect(kept[0]).toContain("post-image");
   });
 
-  it("X URL'ini büyük varyanta çevirir", () => {
+  it("rewrites an X URL to its large variant", () => {
     const large = toLargeVariant(
       "https://pbs.twimg.com/media/GxHack.jpg?format=jpg&name=medium",
     );
@@ -36,17 +36,17 @@ describe("ocr görsel filtresi", () => {
   });
 });
 
-describe("ocr metin birleştirme", () => {
-  it("görsel metnini kaynak etiketiyle ekler", () => {
+describe("ocr text merging", () => {
+  it("appends image text with the source tag", () => {
     const merged = mergeOcrIntoText("Hackathon duyurusu", "19-20 EYLÜL 2026 ISTANBUL kayit: luma.com/x");
-    expect(merged).toContain("[görsel metni]");
+    expect(merged).toContain("[image text]");
     expect(merged).toContain("Hackathon duyurusu");
     expect(merged).toContain("luma.com/x");
   });
 });
 
-describe("config geriye uyumluluk", () => {
-  it("ocr bölümü olmayan eski config varsayılanlarla kabul edilir", () => {
+describe("config backward compatibility", () => {
+  it("an old config without the ocr section is accepted with defaults", () => {
     const oldConfig = { ...DEFAULT_SEARCH_CONFIG };
     delete (oldConfig as { ocr?: unknown }).ocr;
     const parsed = searchConfigSchema.parse(oldConfig);

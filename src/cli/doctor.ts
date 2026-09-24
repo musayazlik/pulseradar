@@ -20,7 +20,7 @@ interface Check {
 export async function runDoctorCommand(): Promise<number> {
   const checks: Check[] = [];
 
-  // Node sürümü
+  // Node version
   const major = Number(process.version.slice(1).split(".")[0]);
   checks.push({
     name: "Node >= 22",
@@ -45,7 +45,7 @@ export async function runDoctorCommand(): Promise<number> {
       name: "search.json",
       ok: true,
       detail: `${config.keywords.length} kelime, ${config.hashtags.length} hashtag, OCR ${
-        config.ocr.enabled ? `açık (≤${config.ocr.maxImagesPerPost} görsel/gönderi)` : "kapalı"
+        config.ocr.enabled ? `on (≤${config.ocr.maxImagesPerPost} images/post)` : "off"
       }`,
     });
   } catch (err) {
@@ -66,7 +66,7 @@ export async function runDoctorCommand(): Promise<number> {
   checks.push({
     name: "Profil kilidi",
     ok: !lock.locked,
-    detail: lock.locked ? `kilitli (PID ${lock.contents?.pid})` : "boşta",
+    detail: lock.locked ? `locked (PID ${lock.contents?.pid})` : "idle",
   });
 
   // Worker durumu
@@ -78,10 +78,10 @@ export async function runDoctorCommand(): Promise<number> {
     detail:
       age < 90_000
         ? `aktif (${heartbeat?.workerId})`
-        : "aktif worker yok (npm run worker ile başlatın)",
+        : "no active worker (start it with npm run worker)",
   });
 
-  // Chrome kullanılabilirliği
+  // Chrome availability
   const chromePath = "/Applications/Google Chrome.app";
   let chromeOk = fs.existsSync(chromePath);
   if (!chromeOk) {
@@ -98,7 +98,7 @@ export async function runDoctorCommand(): Promise<number> {
   checks.push({
     name: "Chrome",
     ok: chromeOk,
-    detail: chromeOk ? "kurulu" : "bulunamadı (persistent mod için gerekli)",
+    detail: chromeOk ? "installed" : "not found (required for persistent mode)",
   });
 
   // CDP modu
@@ -107,11 +107,11 @@ export async function runDoctorCommand(): Promise<number> {
     checks.push({
       name: "CDP",
       ok: Boolean(cdpUrl && /^https?:\/\/(127\.0\.0\.1|localhost)/.test(cdpUrl)),
-      detail: cdpUrl ?? "EVENT_RADAR_CDP_URL ayarlı değil",
+      detail: cdpUrl ?? "EVENT_RADAR_CDP_URL not set",
     });
   }
 
-  console.log("Etkinlik Radarı — doctor\n");
+  console.log("Event Radar — doctor\n");
   let failures = 0;
   for (const check of checks) {
     const mark = check.ok ? "✓" : "✗";
@@ -121,8 +121,8 @@ export async function runDoctorCommand(): Promise<number> {
 
   console.log(
     failures === 0
-      ? "\nTüm kontroller geçti."
-      : `\n${failures} kontrol başarısız.`,
+      ? "\nAll checks passed."
+      : `\n${failures} check(s) failed.`,
   );
   return failures === 0 ? 0 : 1;
 }

@@ -151,7 +151,7 @@ export const reviewItems = sqliteTable(
   (table) => [index("idx_reviews_status").on(table.status)],
 );
 
-/** Bağlantılar ekranı için son oturum kontrol sonuçları. */
+/** Latest session check results for the connections screen. */
 export const sessionChecks = sqliteTable(
   "session_checks",
   {

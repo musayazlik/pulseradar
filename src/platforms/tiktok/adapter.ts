@@ -8,7 +8,7 @@ import type {
   SocialPostDraft,
 } from "../../core/types/platform";
 
-/** İkinci aşama adapterı. */
+/** Second-phase adapter. */
 export const tiktokScanner: PlatformScanner = {
   platform: "tiktok",
   capabilities: { keywordSearch: false, hashtagSearch: false, nativeDateFilter: false },
@@ -19,7 +19,7 @@ export const tiktokScanner: PlatformScanner = {
       platform: "tiktok",
       status: "unsupported",
       checkedAt: new Date().toISOString(),
-      detail: "TikTok ikinci aşamada etkin olacak.",
+      detail: "TikTok becomes active in a later phase.",
     };
   },
 

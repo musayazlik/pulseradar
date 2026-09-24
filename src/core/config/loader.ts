@@ -6,7 +6,7 @@ import { ensureDataDirs, getConfigPath } from "./paths";
 
 export class ConfigError extends Error {}
 
-/** Config dosyası yoksa varsayılanlarla oluşturur; varsa Zod ile doğrular. */
+/** Creates the config file with defaults when missing; validates with Zod otherwise. */
 export function loadConfig(): SearchConfig {
   ensureDataDirs();
   const configPath = getConfigPath();
@@ -21,7 +21,7 @@ export function loadConfig(): SearchConfig {
     raw = JSON.parse(fs.readFileSync(configPath, "utf8"));
   } catch (err) {
     throw new ConfigError(
-      `search.json okunamadı/JSON geçersiz: ${configPath} (${(err as Error).message})`,
+      `Failed to read search.json / invalid JSON: ${configPath} (${(err as Error).message})`,
     );
   }
 
@@ -30,19 +30,19 @@ export function loadConfig(): SearchConfig {
     const issues = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
-    throw new ConfigError(`search.json doğrulanamadı: ${issues}`);
+    throw new ConfigError(`search.json failed validation: ${issues}`);
   }
   return parsed.data;
 }
 
-/** Doğrular ve atomik olarak (tmp + rename) yazar. */
+/** Validates and writes atomically (tmp + rename). */
 export function saveConfig(raw: unknown): SearchConfig {
   const parsed = searchConfigSchema.safeParse(raw);
   if (!parsed.success) {
     const issues = parsed.error.issues
       .map((i) => `${i.path.join(".")}: ${i.message}`)
       .join("; ");
-    throw new ConfigError(`ayarlar doğrulanamadı: ${issues}`);
+    throw new ConfigError(`settings failed validation: ${issues}`);
   }
   ensureDataDirs();
   writeConfigAtomic(parsed.data);

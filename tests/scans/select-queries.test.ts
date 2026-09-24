@@ -7,75 +7,53 @@ const configHashtags = Array.from({ length: 13 }, (_, i) => `tag${i}`);
 const base = {
   configKeywords,
   configHashtags,
-  maxQueries: 3,
-  rotationOffset: 0,
 };
 
 describe("selectQueries", () => {
-  it("özel anahtar kelime büyük havuza rağmen her zaman ilk sırada", () => {
-    const { queries, customCount } = selectQueries({
-      ...base,
-      customKeywords: ["izmir javascript buluşması"],
-      customHashtags: [],
-      rotationOffset: 7,
-    });
-    expect(queries[0]).toBe("izmir javascript buluşması");
-    expect(customCount).toBe(1);
-    expect(queries).toHaveLength(3);
-    // kalan iki slot varsayılan havuzdan
-    expect(queries.slice(1).every((q) => !q.startsWith("#izmir"))).toBe(true);
-  });
-
-  it("özel hashtag'ler # ile eklenir ve önceliklidir", () => {
-    const { queries } = selectQueries({
-      ...base,
-      customKeywords: [],
-      customHashtags: ["hackathon2026"],
-      rotationOffset: 0,
-    });
-    expect(queries[0]).toBe("#hackathon2026");
-  });
-
-  it("kalan haklar varsayılan havuzdan döndürülerek doldurulur", () => {
-    const a = selectQueries({ ...base, customKeywords: ["özel tarama"], customHashtags: [], rotationOffset: 0 });
-    const b = selectQueries({ ...base, customKeywords: ["özel tarama"], customHashtags: [], rotationOffset: 1 });
-    expect(a.queries[0]).toBe("özel tarama");
-    expect(b.queries[0]).toBe("özel tarama");
-    // ilk slot aynı, döndürülen kısımlar farklı
-    expect(a.queries.slice(1)).not.toEqual(b.queries.slice(1));
-  });
-
-  it("özel sayıyı aşarsa ilk maxQueries özel kullanılır, varsayılan girmez", () => {
+  it("every user-provided word is scanned without trimming", () => {
     const { queries, customCount } = selectQueries({
       ...base,
       customKeywords: ["a", "b", "c", "d", "e"],
       customHashtags: [],
-      rotationOffset: 3,
     });
-    expect(queries).toEqual(["a", "b", "c"]);
-    expect(customCount).toBe(3);
+    expect(queries.slice(0, 5)).toEqual(["a", "b", "c", "d", "e"]);
+    expect(customCount).toBe(5);
+    // no word from the pool is skipped
+    expect(queries).toHaveLength(5 + 25 + 13);
   });
 
-  it("özel olmadığında eski kapsama davranışı korunur", () => {
-    const a = selectQueries({ ...base, customKeywords: [], customHashtags: [], rotationOffset: 0 });
-    const b = selectQueries({ ...base, customKeywords: [], customHashtags: [], rotationOffset: 1 });
-    expect(a.queries).toHaveLength(3);
-    expect(a.queries[0]).toBe("kelime-0");
-    expect(b.queries[0]).toBe("kelime-1");
+  it("custom hashtags are added with # and take priority", () => {
+    const { queries } = selectQueries({
+      ...base,
+      customKeywords: [],
+      customHashtags: ["hackathon2026"],
+    });
+    expect(queries[0]).toBe("#hackathon2026");
   });
 
-  it("özel girişler tekilleştirilir ve varsayılan havuzla çakışmaz", () => {
+  it("custom inputs are deduplicated and do not collide with the default pool", () => {
     const { queries, customCount } = selectQueries({
       ...base,
       customKeywords: ["hackathon", "hackathon", " kelime-0 "],
       customHashtags: ["hackathon"],
-      rotationOffset: 0,
     });
-    // "hackathon" (tekrarsız) + "#hackathon" (hashtag olarak farklı) + "kelime-0"
+    // "hackathon" (deduplicated) + "#hackathon" (distinct as a hashtag) + "kelime-0"
     expect(customCount).toBe(3);
     expect(queries.filter((q) => q === "hackathon")).toHaveLength(1);
     expect(queries.filter((q) => q === "#hackathon")).toHaveLength(1);
-    // "kelime-0" özel olarak seçildi; varsayılan havuzdan tekrar gelmemeli
+    // "kelime-0" was chosen as custom; it must not come back from the default pool
     expect(queries.filter((q) => q === "kelime-0")).toHaveLength(1);
+  });
+
+  it("with no custom inputs, the entire settings list is scanned", () => {
+    const { queries, customCount } = selectQueries({
+      ...base,
+      customKeywords: [],
+      customHashtags: [],
+    });
+    expect(customCount).toBe(0);
+    expect(queries).toHaveLength(25 + 13);
+    expect(queries[0]).toBe("kelime-0");
+    expect(queries).toContain("#tag0");
   });
 });

@@ -1,6 +1,6 @@
 import { normalizeTurkish } from "../utils/normalize";
 
-/** Türkiye önceliği: yaygın şehirler (genişletilebilir). */
+/** Türkiye priority: common cities (extensible). */
 const TR_CITIES = [
   "adana", "ankara", "antalya", "aydin", "balikesir", "bursa", "denizli",
   "diyarbakir", "edirne", "erzurum", "eskisehir", "gaziantep", "hatay",
@@ -9,7 +9,7 @@ const TR_CITIES = [
   "van", "zonguldak",
 ];
 
-/** İstanbul ayrı ele alınır (avrupa/anadolu varyantları). */
+/** Istanbul is handled separately (European/Asian side variants). */
 const ISTANBUL_VARIANTS = ["istanbul", "istanbul avrupa", "istanbul anadolu"];
 
 const ONLINE_HINTS = [

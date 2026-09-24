@@ -5,7 +5,7 @@ import path from "node:path";
 import { resetDbForTests } from "../../src/database/client";
 import { ingestPost, listEventsWithStatus } from "../../src/core/services/event-service";
 
-// Her test izole veri dizininde çalışır; DB önbelleği afterEach'de sıfırlanır.
+// Each test runs in an isolated data directory; the DB cache is reset in afterEach.
 const tmpDirs: string[] = [];
 
 beforeEach(() => {
@@ -22,8 +22,8 @@ afterEach(() => {
   delete process.env.EVENT_RADAR_DATA_DIR;
 });
 
-describe("duplicate kontrolü (DB entegre)", () => {
-  it("aynı veri ikinci kez eklenmez; aynı gönderi 'reseen' olur", () => {
+describe("duplicate control (DB-integrated)", () => {
+  it("the same data is not inserted twice; the same post becomes 'reseen'", () => {
     const draft = {
       platform: "linkedin" as const,
       platformPostId: "post-1",
@@ -48,7 +48,7 @@ describe("duplicate kontrolü (DB entegre)", () => {
     expect(created).toHaveLength(1);
   });
 
-  it("aynı başlık + aynı tarih ikinci paylaşımda birleşir", () => {
+  it("same title + same date merges on a second post", () => {
     const base = {
       accountName: "A",
       accountUrl: null,
@@ -84,7 +84,7 @@ describe("duplicate kontrolü (DB entegre)", () => {
     expect(second.eventId).toBe(first.eventId);
   });
 
-  it("etkinlik niyeti olmayan metin (iş ilanı) kayıt açmaz", () => {
+  it("text without event intent (a job ad) creates no record", () => {
     const result = ingestPost(
       {
         platform: "x" as const,

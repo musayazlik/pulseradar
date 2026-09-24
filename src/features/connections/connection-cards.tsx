@@ -27,7 +27,7 @@ function ConnectionCard({ connection }: { connection: ConnectionInfo }) {
   const check = async () => {
     try {
       await api.checkConnections([connection.platform]);
-      toast.success("Kontrol işi kuyruğa alındı; worker çalışıyorsa sonuç kısa sürede gelir.");
+      toast.success("Check job queued; the result arrives shortly if the worker is running.");
       await queryClient.invalidateQueries({ queryKey: ["connections"] });
     } catch (err) {
       toast.error((err as Error).message);
@@ -37,7 +37,7 @@ function ConnectionCard({ connection }: { connection: ConnectionInfo }) {
   const open = async () => {
     try {
       await api.openConnection(connection.platform);
-      toast.info("Giriş ekranı worker tarafından açılıyor; tarayıcı penceresine bakın.");
+      toast.info("The worker is opening the login screen; check the browser window.");
     } catch (err) {
       toast.error((err as Error).message);
     }
@@ -61,7 +61,7 @@ function ConnectionCard({ connection }: { connection: ConnectionInfo }) {
                 {PLATFORM_LABELS[connection.platform] ?? connection.platform}
               </p>
               {disabled && (
-                <p className="font-mono text-[11px] text-muted-foreground">ikinci aşama</p>
+                <p className="font-mono text-[11px] text-muted-foreground">second phase</p>
               )}
             </div>
           </div>
@@ -69,20 +69,20 @@ function ConnectionCard({ connection }: { connection: ConnectionInfo }) {
         </div>
 
         <p className="mt-3 min-h-8 text-xs leading-relaxed text-muted-foreground">
-          {connection.detail ?? "Henüz kontrol edilmedi."}
+          {connection.detail ?? "Not checked yet."}
         </p>
         {connection.checkedAt && (
           <p className="mt-1 font-mono text-[11px] tabular-nums text-muted-foreground">
-            son kontrol: {new Date(connection.checkedAt).toLocaleString("tr-TR")}
+            last check: {new Date(connection.checkedAt).toLocaleString("en-US")}
           </p>
         )}
 
         <div className="mt-4 flex gap-2">
           <Button size="sm" variant="outline" onClick={check} disabled={disabled}>
-            Oturumu kontrol et
+            Check session
           </Button>
           <Button size="sm" variant="ghost" onClick={open} disabled={disabled}>
-            Giriş ekranını aç
+            Open login screen
           </Button>
         </div>
       </CardContent>

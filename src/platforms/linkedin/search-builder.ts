@@ -1,7 +1,7 @@
 import type { SearchOptions } from "../../core/types/platform";
 import { LINKEDIN_BASE_URL } from "./selectors";
 
-/** LinkedIn içerik araması URL'i; canlı sonuç publishedAt ile de kontrol edilir. */
+/** LinkedIn content search URL; live results are re-checked against publishedAt. */
 export function buildLinkedInSearchUrl(options: SearchOptions): string {
   const keyword = options.queries[0] ?? "";
   const params = new URLSearchParams({

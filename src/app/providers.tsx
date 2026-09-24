@@ -10,7 +10,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            // Tarama durumu eski cache'den dönmesin.
+            // Scan status must never come back from a stale cache.
             staleTime: 1000,
             refetchOnWindowFocus: false,
             retry: 1,

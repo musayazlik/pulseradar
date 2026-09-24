@@ -10,19 +10,19 @@ describe("url-parser", () => {
     expect(normalized).toBe("https://luma.com/abc?event_id=42");
   });
 
-  it("geçersiz URL'de null döner", () => {
+  it("returns null for an invalid URL", () => {
     expect(normalizeUrl("not a url")).toBeNull();
     expect(normalizeUrl("javascript:alert(1)")).toBeNull();
   });
 
-  it("metindeki benzersiz bağlantıları çıkarır", () => {
+  it("extracts unique links from text", () => {
     const links = extractUrls(
       "Kayıt: https://kommunity.com/etkinlik Ayrıntı: https://kommunity.com/etkinlik",
     );
     expect(links).toHaveLength(1);
   });
 
-  it("kayıt adaylarını işaretler", () => {
+  it("flags registration candidates", () => {
     const result = parseUrls("Kayıt için https://luma.com/abc ve https://example.com/sayfa");
     expect(result.registrationCandidates).toEqual(["https://luma.com/abc"]);
   });

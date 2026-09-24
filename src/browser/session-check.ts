@@ -8,7 +8,7 @@ const LOGIN_URLS: Record<Platform, string> = {
   tiktok: "https://www.tiktok.com/login",
 };
 
-/** Giriş tamamlanınca yönlendirilen sayfa işaretleri. */
+/** Page markers redirected to once sign-in completes. */
 const LOGGED_IN_MARKERS: Record<Platform, (url: string) => boolean> = {
   linkedin: (url) => url.includes("/feed/"),
   x: (url) => url.includes("/home"),
@@ -22,8 +22,8 @@ export interface OpenLoginResult {
 }
 
 /**
- * Giriş ekranını açar ve kullanıcı girişini bekler; profil kapanmadan önce
- * kalıcı olarak saklanır. Şifre uygulamaya asla girilmez.
+ * Opens the login screen and waits for the user to sign in; the profile is
+ * persisted before it is closed. The password never enters the app.
  */
 export async function openLoginScreen(
   platform: Platform,
@@ -46,14 +46,14 @@ export async function openLoginScreen(
         await session.close();
         return {
           status: "logged_in",
-          detail: `${platform} girişi tamamlandı; profil saklandı.`,
+          detail: `${platform} sign-in completed; profile persisted.`,
         };
       }
     }
     await session.close();
     return {
       status: "timeout",
-      detail: `${timeoutMs / 1000} sn içinde giriş tamamlanmadı.`,
+      detail: `Sign-in was not completed within ${timeoutMs / 1000} s.`,
     };
   } catch (err) {
     await session?.close().catch(() => {});

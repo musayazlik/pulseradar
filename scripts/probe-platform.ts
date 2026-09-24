@@ -1,9 +1,9 @@
 /**
- * Canlı selector gözlem aracı: platformu açar, oturum durumunu ve arama
- * sonuç DOM'undaki aday selector sayılarını raporlar, kanıtı logs/ altına
- * kaydeder. Selector'lar ancak bununla gözlemlenerek güncellenir.
+ * Live selector observation tool: opens the platform, reports the session status and
+ * candidate selector counts in the search result DOM, and saves evidence under
+ * logs/. Selectors are updated only by observing with this tool.
  *
- * Kullanım: npx tsx scripts/probe-platform.ts <linkedin|x> [sorgu]
+ * Usage: npx tsx scripts/probe-platform.ts <linkedin|x> [query]
  */
 import { openOwnedSession } from "../src/browser/browser-manager";
 import { getAdapter } from "../src/platforms/registry";
@@ -16,7 +16,7 @@ import { createRateLimiter } from "../src/worker/rate-limiter";
 
 async function main(): Promise<void> {
   const platform = normalizePlatform(process.argv[2] ?? "linkedin");
-  if (!platform) throw new Error("platform linkedin|x|instagram|tiktok olmalı");
+  if (!platform) throw new Error("platform must be linkedin|x|instagram|tiktok");
   const query = process.argv[3] ?? "hackathon istanbul";
 
   const adapter = getAdapter(platform)!;
@@ -37,7 +37,6 @@ async function main(): Promise<void> {
       queries: [query],
       maxPostsPerQuery: 15,
       maxScrollsPerQuery: 1,
-      maxPostsPerPlatform: 30,
       lastDays: 30,
       city: null,
     };
@@ -63,15 +62,15 @@ async function main(): Promise<void> {
       ).length,
       bodyChars: document.body.innerText.length,
     }));
-    console.log("selector sayıları:", counts);
+    console.log("selector counts:", counts);
 
     const sample = await page.evaluate(() =>
       document.body.innerText.slice(0, 500).replace(/\n+/g, " | "),
     );
-    console.log("metin örneği:", sample);
+    console.log("text sample:", sample);
 
     const base = await captureDebug(page, platform, "probe");
-    console.log(`kanıtlar: ${base}.html + ${base}.png`);
+    console.log(`evidence: ${base}.html + ${base}.png`);
   } finally {
     await session.close().catch(() => {});
   }

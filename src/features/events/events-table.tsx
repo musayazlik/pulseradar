@@ -41,35 +41,35 @@ export function EventsTable({ initialStatus }: { initialStatus?: string }) {
 
   return (
     <div className="space-y-4">
-      {/* filtre çubuğu */}
+      {/* filter bar */}
       <div className="flex flex-wrap items-end gap-3 rounded-md border bg-card p-3">
         <div className="space-y-1">
           <Label htmlFor="status-filter" className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            durum
+            status
           </Label>
           <Select value={status} onValueChange={(value) => setStatus(value ?? "")}>
             <SelectTrigger className="w-48 font-mono text-xs" id="status-filter">
-              <SelectValue placeholder="Durum" />
+              <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="upcoming,needs_review">yaklaşan + inceleme</SelectItem>
-              <SelectItem value="upcoming">yaklaşan</SelectItem>
-              <SelectItem value="needs_review">incelenecek</SelectItem>
-              <SelectItem value="expired">geçmiş</SelectItem>
-              <SelectItem value="rejected">reddedilenler</SelectItem>
-              <SelectItem value="">tümü</SelectItem>
+              <SelectItem value="upcoming,needs_review">upcoming + review</SelectItem>
+              <SelectItem value="upcoming">upcoming</SelectItem>
+              <SelectItem value="needs_review">needs review</SelectItem>
+              <SelectItem value="expired">past</SelectItem>
+              <SelectItem value="rejected">rejected</SelectItem>
+              <SelectItem value="">all</SelectItem>
             </SelectContent>
           </Select>
         </div>
         <div className="space-y-1">
           <Label htmlFor="city-filter" className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-            şehir
+            city
           </Label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
               id="city-filter"
-              placeholder="örn. istanbul"
+              placeholder="e.g. istanbul"
               value={city}
               onChange={(e) => setCity(e.target.value)}
               className="w-44 pl-8 font-mono text-xs"
@@ -77,7 +77,7 @@ export function EventsTable({ initialStatus }: { initialStatus?: string }) {
           </div>
         </div>
         <span aria-live="polite" className="ml-auto pb-2 font-mono text-xs text-muted-foreground">
-          {query.isFetching ? "tarıyor…" : `${query.data?.count ?? 0} kayıt`}
+          {query.isFetching ? "scanning…" : `${query.data?.count ?? 0} records`}
         </span>
       </div>
 
@@ -86,22 +86,22 @@ export function EventsTable({ initialStatus }: { initialStatus?: string }) {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                tarih
+                date
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                başlık
+                title
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                yer
+                location
               </TableHead>
               <TableHead className="hidden font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground md:table-cell">
-                organizatör
+                organizer
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                kaynak
+                source
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                durum
+                status
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -109,7 +109,7 @@ export function EventsTable({ initialStatus }: { initialStatus?: string }) {
             {query.data?.events.map((event) => (
               <TableRow key={event.id} className="group">
                 <TableCell className="whitespace-nowrap font-mono text-xs tabular-nums">
-                  {event.startDate ?? "belirsiz"}
+                  {event.startDate ?? "unknown"}
                   {event.startTime ? ` ${event.startTime}` : ""}
                 </TableCell>
                 <TableCell className="max-w-72">
@@ -146,7 +146,7 @@ export function EventsTable({ initialStatus }: { initialStatus?: string }) {
             {query.data && query.data.events.length === 0 && (
               <TableRow>
                 <TableCell colSpan={6} className="py-10 text-center text-sm text-muted-foreground">
-                  Radar bu filtrede kayıt bulamadı.
+                  The radar found no records for this filter.
                 </TableCell>
               </TableRow>
             )}

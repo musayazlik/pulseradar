@@ -15,7 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { api } from "@/lib/api";
 
 const formSchema = z.object({
-  platforms: z.array(z.string()).min(1, "En az bir platform seçin"),
+  platforms: z.array(z.string()).min(1, "Select at least one platform"),
   city: z.string().trim().optional(),
   keywords: z.string().optional(),
   hashtags: z.string().optional(),
@@ -56,7 +56,7 @@ export function NewScanForm({ defaultLastDays }: { defaultLastDays: number }) {
       });
     },
     onSuccess: (result) => {
-      toast.success("Tarama kuyruğa alındı.");
+      toast.success("Scan queued.");
       router.push(`/scans/${result.runId}`);
     },
     onError: (err) => toast.error((err as Error).message),
@@ -77,7 +77,7 @@ export function NewScanForm({ defaultLastDays }: { defaultLastDays: number }) {
   return (
     <form onSubmit={form.handleSubmit((values) => mutation.mutate(values))} className="space-y-4">
       <div className="space-y-2">
-        <Label>Platformlar</Label>
+        <Label>Platforms</Label>
         <div className="flex flex-wrap gap-4">
           {platforms.map((platform) => {
             const disabled = platform === "instagram" || platform === "tiktok";
@@ -89,7 +89,7 @@ export function NewScanForm({ defaultLastDays }: { defaultLastDays: number }) {
                   disabled={disabled}
                 />
                 {platform === "x" ? "X" : platform}
-                {disabled && <span className="text-xs text-muted-foreground">(yakında)</span>}
+                {disabled && <span className="text-xs text-muted-foreground">(soon)</span>}
               </label>
             );
           })}
@@ -101,11 +101,11 @@ export function NewScanForm({ defaultLastDays }: { defaultLastDays: number }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="scan-city">Şehir (boşsa hepsi)</Label>
-          <Input id="scan-city" placeholder="örn. istanbul" {...form.register("city")} />
+          <Label htmlFor="scan-city">City (empty = all)</Label>
+          <Input id="scan-city" placeholder="e.g. istanbul" {...form.register("city")} />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="scan-days">Son X gün (paylaşım tarihi)</Label>
+          <Label htmlFor="scan-days">Last X days (post date)</Label>
           <Input
             id="scan-days"
             type="number"
@@ -118,23 +118,23 @@ export function NewScanForm({ defaultLastDays }: { defaultLastDays: number }) {
 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
-          <Label htmlFor="scan-keywords">Özel anahtar kelimeler (satır başına bir)</Label>
+          <Label htmlFor="scan-keywords">Custom keywords (one per line)</Label>
           <Textarea
             id="scan-keywords"
-            placeholder="boş bırakılırsa Ayarlar'daki liste kullanılır"
+            placeholder="leave empty to use the list from Settings"
             rows={3}
             {...form.register("keywords")}
           />
           <p className="text-[11px] leading-relaxed text-muted-foreground">
-            Yazdığın kelimeler her zaman <span className="text-primary">önce</span> kullanılır;
-            kalan sorgu hakkı Ayarlar'daki listeyle doldurulur.
+            <span className="text-primary">All</span> of your keywords are scanned; if left
+            empty, the entire list from Settings is scanned. No queries get skipped.
           </p>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="scan-hashtags">Özel hashtag'ler (# olmadan)</Label>
+          <Label htmlFor="scan-hashtags">Custom hashtags (without #)</Label>
           <Textarea
             id="scan-hashtags"
-            placeholder="boş bırakılırsa Ayarlar'daki liste kullanılır"
+            placeholder="leave empty to use the list from Settings"
             rows={3}
             {...form.register("hashtags")}
           />
@@ -146,14 +146,14 @@ export function NewScanForm({ defaultLastDays }: { defaultLastDays: number }) {
           checked={form.watch("includeOnline")}
           onCheckedChange={(checked) => form.setValue("includeOnline", checked)}
         />
-        Online etkinlikleri de göster
+        Also show online events
       </label>
 
       <Button type="submit" disabled={mutation.isPending}>
-        {mutation.isPending ? "kuyruğa alınıyor…" : "Taramayı başlat"}
+        {mutation.isPending ? "queuing…" : "Start scan"}
       </Button>
       <p className="text-xs text-muted-foreground">
-        Tarama worker tarafından yürütülür; panel kapansa da sürer. Limitler Ayarlar'dan gelir.
+        The scan runs in the worker and continues even if the panel closes. Limits come from Settings.
       </p>
     </form>
   );

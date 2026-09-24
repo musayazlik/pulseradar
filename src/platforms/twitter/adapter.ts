@@ -83,7 +83,7 @@ export const xScanner: PlatformScanner = {
           platform: "x",
           status: "login_required",
           checkedAt: nowIso(),
-          detail: "Oturum yok (login duvarı). Bağlantılar ekranından giriş yapın.",
+          detail: "No session (login wall). Sign in from the Connections screen.",
         };
       }
       if (state.hasTimeline) {
@@ -94,7 +94,7 @@ export const xScanner: PlatformScanner = {
         platform: "x",
         status: "unsupported",
         checkedAt: nowIso(),
-        detail: `Timeline bulunamadı; kanıt kaydedildi: ${evidence}`,
+        detail: `Timeline not found; evidence saved: ${evidence}`,
       };
     } catch (err) {
       return {
@@ -116,7 +116,6 @@ export const xScanner: PlatformScanner = {
       queries: [query],
       maxPostsPerQuery: options.maxPostsPerQuery,
       maxScrollsPerQuery: options.maxScrollsPerQuery,
-      maxPostsPerPlatform: options.maxPostsPerPlatform,
       lastDays: options.lastDays,
       city: options.city,
     });

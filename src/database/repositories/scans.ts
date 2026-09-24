@@ -115,7 +115,7 @@ export function listRuns(limit = 50): ScanRunRecord[] {
     .map(runToRecord);
 }
 
-/** Türüne göre iş sayacı (sorgu döndürme kapsaması için). */
+/** Job counter by kind (for query rotation coverage). */
 export function countRuns(kind?: ScanKind): number {
   const db = getDb();
   const query = db.select({ count: sql<number>`count(*)` }).from(scanRuns);
@@ -124,8 +124,8 @@ export function countRuns(kind?: ScanKind): number {
 }
 
 /**
- * Atomik iş sahiplenme: yalnızca bir worker `changes=1` görür.
- * Kalan sıradaki işi döndürür; kuyruk boşsa null.
+ * Atomic job claiming: only one worker sees `changes=1`.
+ * Returns the next queued job; null when the queue is empty.
  */
 export function claimNextRun(
   workerId: string,
@@ -285,7 +285,7 @@ export function recordObservation(taskId: string, postId: string): boolean {
       .run();
     return true;
   } catch {
-    return false; // zaten kayıtlı
+    return false; // already recorded
   }
 }
 
@@ -298,7 +298,7 @@ export function hasObservation(postId: string): boolean {
   return row != null;
 }
 
-/** Kurtarma: lease süresi dolmuş running işleri bulur. */
+/** Recovery: finds running jobs whose lease has expired. */
 export function listExpiredRunningRuns(): ScanRunRecord[] {
   const now = nowIso();
   return getDb()
@@ -320,7 +320,7 @@ export function listStaleRunningTasks(runId: string): ScanTaskRecord[] {
     .map(taskToRecord);
 }
 
-/** Worker heartbeat: en güncel running işin heartbeat'i. */
+/** Worker heartbeat: the heartbeat of the most recent running job. */
 export function latestWorkerHeartbeat(): { workerId: string; heartbeatAt: string } | null {
   const row = getDb()
     .select({ workerId: scanRuns.workerId, heartbeatAt: scanRuns.heartbeatAt })

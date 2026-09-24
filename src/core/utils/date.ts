@@ -1,4 +1,4 @@
-/** Keşif/işlem zamanları UTC ISO string tutulur. */
+/** Discovery/processing timestamps are kept as UTC ISO strings. */
 export function nowIso(): string {
   return new Date().toISOString();
 }
@@ -30,8 +30,8 @@ export function addDays(date: Date, days: number): Date {
 }
 
 /**
- * Paylaşım tarihine göre "bugün"/"yarın" gibi göreli ifadeleri çözer.
- * Paylaşım tarihi yoksa null döner; çağıran taraf kaydı incelemeye alır.
+ * Resolves relative expressions like "bugün" (today)/"yarın" (tomorrow)
+ * against the post date. Returns null without a post date; the caller sends the record to review.
  */
 export function resolveRelativeDay(
   dayOffset: number,
@@ -45,6 +45,6 @@ export function resolveRelativeDay(
     date: formatDateParts(target),
     time: null,
     precision: "day",
-    evidence: dayOffset === 0 ? "bugün" : "yarın",
+    evidence: dayOffset === 0 ? "today" : "tomorrow",
   };
 }

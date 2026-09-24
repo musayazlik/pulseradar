@@ -21,8 +21,8 @@ export class ProfileLockedError extends Error {
   constructor(public readonly contents: LockContents | null) {
     super(
       contents
-        ? `Tarayıcı profili başka bir süreçte kullanılıyor (PID ${contents.pid}, ${contents.acquiredAt}). O süreç kapanana kadar bekleyin.`
-        : "Tarayıcı profili kilitli.",
+        ? `Browser profile is in use by another process (PID ${contents.pid}, ${contents.acquiredAt}). Wait until that process exits.`
+        : "Browser profile is locked.",
     );
   }
 }
@@ -35,7 +35,7 @@ function readLock(path: string): LockContents | null {
   }
 }
 
-/** Profil tek worker tarafından yönetilir; ikinci süreç anlaşılır hata alır. */
+/** The profile is managed by a single worker; a second process gets a clear error. */
 export function acquireProfileLock(): void {
   const lockPath = getProfileLockPath();
 
@@ -44,7 +44,7 @@ export function acquireProfileLock(): void {
     if (existing && isProcessAlive(existing.pid)) {
       throw new ProfileLockedError(existing);
     }
-    // Bayat kilit: süreç ölmüşse temizlenir.
+    // Stale lock: cleaned up when the owning process is dead.
     fs.rmSync(lockPath, { force: true });
   }
 
@@ -75,7 +75,7 @@ export function isProfileLocked(): { locked: boolean; contents: LockContents | n
   return { locked: contents ? isProcessAlive(contents.pid) : true, contents };
 }
 
-/** doctor için: Chrome kurulu mu? */
+/** For doctor: is Chrome installed? */
 export function isChromeInstalled(): boolean {
   try {
     execFileSync("mdfind", ["kMDItemCFBundleIdentifier == 'com.google.Chrome'"], {

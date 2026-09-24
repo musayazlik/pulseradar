@@ -29,7 +29,7 @@ export interface EventRecord {
   organizer: string | null;
   registrationUrl: string | null;
   status: EventStatus;
-  /** Kural puanı; istatistiksel doğruluk yüzdesi değildir. */
+  /** Rule score; not a statistical accuracy percentage. */
   confidence: number;
   /** UTC ISO zamanlar. */
   firstDiscoveredAt: string;
@@ -51,7 +51,7 @@ export interface EventWithSources extends EventRecord {
   sources: EventSourceLink[];
 }
 
-/** Etkinlik listesinde satır başına platform rozetleri için. */
+/** Platform badges per row in the event list. */
 export interface EventListRow extends EventRecord {
   platforms: string[];
 }

@@ -25,7 +25,7 @@ function normalizeForParse(text: string): string {
     .replaceAll("ç", "c");
 }
 
-/** Yıl verilmemişse veya geçmişse ay/gün için bir sonraki gerçekleşme yılı. */
+/** Next occurrence year for month/day when the year is missing or in the past. */
 function toNextOccurrenceYear(month0: number, day: number, now: Date): number {
   const candidate = Date.UTC(now.getUTCFullYear(), month0, day);
   const minPast = now.getTime() - 7 * 24 * 3600 * 1000;
@@ -40,9 +40,9 @@ export interface DateParseResult {
 }
 
 /**
- * Kural tabanlı tarih çıkarımı (Aşama 4'te derinleştirilecek).
+ * Rule-based date extraction (to be deepened in Phase 4).
  * Desteklenenler: 12.10.2026, 12/10/2026, 12 Ekim 2026, 12 Ekim 2026 19:00,
- * "Ekim 2026" (ay hassasiyeti), "yarın"/"bugün" (paylaşım tarihi varsa).
+ * "Ekim 2026" (month precision), "yarın"/"bugün" (when the post date is known).
  */
 export function parseDateExpressions(
   rawText: string,
@@ -79,14 +79,14 @@ export function parseDateExpressions(
     });
   }
 
-  // 12 Ekim 2026 (opsiyonel saat) — gün adı ("12 Ekim Salı 2026") da kabul edilir
+  // 12 Ekim 2026 (optional time) — weekday names ("12 Ekim Salı 2026") also accepted
   const named = text.matchAll(
     /\b(\d{1,2})\s+(ocak|subat|mart|nisan|mayis|haziran|temmuz|agustos|eylul|ekim|kasim|aralik)(?:\s+(?:pazartesi|sali|carsamba|persembe|cuma|cumartesi|pazar))?\s+(\d{4})(?:\s+(\d{1,2}):(\d{2}))?\b/g,
   );
   for (const m of named) {
     const day = Number(m[1]);
     const month = TURKISH_MONTHS[m[2]];
-    // Geçmiş yıl verildiyse bir sonraki gerçekleşmeye taşınır.
+    // A stated past year is moved to the next occurrence.
     const givenYear = Number(m[3]);
     const resolved = Date.UTC(givenYear, month, day);
     const year =
@@ -118,11 +118,11 @@ export function parseDateExpressions(
     });
   }
 
-  // göreli: bugün / yarın
+  // relative: bugün (today) / yarın (tomorrow)
   if (/\bbugun\b/.test(text)) push(resolveRelativeDay(0, publishedAt));
   if (/\byarin\b/.test(text)) push(resolveRelativeDay(1, publishedAt));
 
-  // "bu cuma", "bu cumartesi" — paylaşım tarihi + haftanın günü
+  // "bu cuma", "bu cumartesi" — post date + weekday
   const weekday = text.matchAll(
     /\bbu\s+(pazartesi|sali|carsamba|persembe|cuma|cumartesi|pazar)\b/g,
   );
@@ -136,7 +136,7 @@ export function parseDateExpressions(
     );
     const baseDow = new Date(baseUtc).getUTCDay();
     let delta = (target - baseDow + 7) % 7;
-    if (delta === 0) delta = 7; // "bu cuma" aynı günse sonraki hafta anlaşılmaz; incelemeye kalır mantığı
+    if (delta === 0) delta = 7; // "bu cuma" on the same day reads as next week; stays unambiguous
     push({
       date: formatDateParts(addDays(new Date(baseUtc), delta)),
       time: null,

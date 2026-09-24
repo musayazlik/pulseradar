@@ -20,14 +20,14 @@ import type { ScanCounters } from "@/core/types/scan";
 const TERMINAL = new Set(["completed", "partial", "failed", "cancelled", "interrupted"]);
 
 const COUNTER_LABELS: Array<[keyof ScanCounters, string, "primary" | "amber" | "muted"]> = [
-  ["uniquePostsScanned", "taranan paylaşım", "primary"],
-  ["eventsCreated", "eklenen etkinlik", "primary"],
-  ["postsReseen", "yeniden görülen", "muted"],
-  ["candidatesMerged", "birleşen aday", "muted"],
-  ["reviewItems", "incelenecek", "amber"],
-  ["filteredByDate", "tarihte elenen", "muted"],
-  ["eventCandidates", "aday", "muted"],
-  ["platformErrors", "platform hatası", "amber"],
+  ["uniquePostsScanned", "posts scanned", "primary"],
+  ["eventsCreated", "events added", "primary"],
+  ["postsReseen", "seen again", "muted"],
+  ["candidatesMerged", "merged candidates", "muted"],
+  ["reviewItems", "needs review", "amber"],
+  ["filteredByDate", "filtered by date", "muted"],
+  ["eventCandidates", "candidates", "muted"],
+  ["platformErrors", "platform errors", "amber"],
 ];
 
 export function ScanProgress({ runId }: { runId: string }) {
@@ -35,21 +35,21 @@ export function ScanProgress({ runId }: { runId: string }) {
   const query = useQuery({
     queryKey: ["scan", runId],
     queryFn: () => api.scan(runId),
-    // Yalnızca aktif taramada ~2 saniyede bir durum sorgusu.
+    // Poll status every ~2 seconds only while the scan is active.
     refetchInterval: (q) => (q.state.data && TERMINAL.has(q.state.data.status) ? false : 2000),
   });
 
   const cancel = async () => {
     try {
       await api.cancelScan(runId);
-      toast.info("İptal talebi kaydedildi; worker adımlar arasında uygular.");
+      toast.info("Cancel requested; the worker applies it between steps.");
       await queryClient.invalidateQueries({ queryKey: ["scan", runId] });
     } catch (err) {
       toast.error((err as Error).message);
     }
   };
 
-  if (query.isLoading) return <p className="font-mono text-sm text-muted-foreground">yükleniyor…</p>;
+  if (query.isLoading) return <p className="font-mono text-sm text-muted-foreground">loading…</p>;
   if (query.isError) return <p className="text-sm text-destructive">{(query.error as Error).message}</p>;
   const run = query.data!;
   const isTerminal = TERMINAL.has(run.status);
@@ -61,16 +61,16 @@ export function ScanProgress({ runId }: { runId: string }) {
           <StatusChip status={run.status} />
           {run.stopReason && (
             <span className="font-mono text-xs text-muted-foreground">
-              neden: {run.stopReason}
+              reason: {run.stopReason}
             </span>
           )}
         </div>
         {!isTerminal ? (
           <Button size="sm" variant="destructive" onClick={cancel}>
-            İptal et
+            Cancel
           </Button>
         ) : (
-          <span className="font-mono text-xs text-muted-foreground">tarama sonlandı</span>
+          <span className="font-mono text-xs text-muted-foreground">scan finished</span>
         )}
       </div>
 
@@ -88,16 +88,16 @@ export function ScanProgress({ runId }: { runId: string }) {
                 platform
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                sorgu
+                query
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                durum
+                status
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                paylaşım
+                posts
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                not
+                note
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -123,7 +123,7 @@ export function ScanProgress({ runId }: { runId: string }) {
 
       {!isTerminal && (
         <p className="font-mono text-[11px] text-muted-foreground">
-          sayaçlar ~2 saniyede bir yenileniyor; panel kapansa da worker devam eder
+          counters refresh every ~2 seconds; the worker continues even if the panel closes
         </p>
       )}
     </div>

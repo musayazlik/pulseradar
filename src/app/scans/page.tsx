@@ -22,24 +22,24 @@ export default function ScansPage() {
   return (
     <div className="space-y-6">
       <div className="reveal">
-        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">tarama konsolu</p>
-        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Taramalar</h1>
+        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">scan console</p>
+        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Scans</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Yeni tarama emri ver ve geçmişi izle
+          Order a new scan and follow its history
         </p>
       </div>
 
       <Card className="reveal-2">
         <CardHeader>
           <CardTitle className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            yeni tarama emri
+            new scan order
           </CardTitle>
         </CardHeader>
         <CardContent>
           {settings.data ? (
             <NewScanForm defaultLastDays={settings.data.filters.lastDays} />
           ) : (
-            <p className="font-mono text-sm text-muted-foreground">ayarlar yükleniyor…</p>
+            <p className="font-mono text-sm text-muted-foreground">loading settings…</p>
           )}
         </CardContent>
       </Card>
@@ -49,16 +49,16 @@ export default function ScansPage() {
           <TableHeader>
             <TableRow className="hover:bg-transparent">
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                başlangıç
+                started
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                tür
+                kind
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                durum
+                status
               </TableHead>
               <TableHead className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-                kimlik
+                id
               </TableHead>
             </TableRow>
           </TableHeader>
@@ -66,7 +66,7 @@ export default function ScansPage() {
             {history.data?.runs.map((run) => (
               <TableRow key={run.id} className="group">
                 <TableCell className="font-mono text-xs tabular-nums">
-                  {new Date(run.createdAt).toLocaleString("tr-TR")}
+                  {new Date(run.createdAt).toLocaleString("en-US")}
                 </TableCell>
                 <TableCell className="font-mono text-xs text-muted-foreground">
                   {run.kind}
@@ -87,7 +87,7 @@ export default function ScansPage() {
             {history.data && history.data.runs.length === 0 && (
               <TableRow>
                 <TableCell colSpan={4} className="py-10 text-center text-sm text-muted-foreground">
-                  Henüz tarama yok.
+                  No scans yet.
                 </TableCell>
               </TableRow>
             )}

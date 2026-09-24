@@ -15,11 +15,11 @@ import { api } from "@/lib/api";
 import { RadarMark } from "@/components/radar-mark";
 
 const NAV = [
-  { href: "/", label: "Genel Bakış", icon: LayoutDashboard },
-  { href: "/events", label: "Etkinlikler", icon: CalendarRange },
-  { href: "/scans", label: "Taramalar", icon: Radar },
-  { href: "/connections", label: "Bağlantılar", icon: Cable },
-  { href: "/settings", label: "Ayarlar", icon: SlidersHorizontal },
+  { href: "/", label: "Overview", icon: LayoutDashboard },
+  { href: "/events", label: "Events", icon: CalendarRange },
+  { href: "/scans", label: "Scans", icon: Radar },
+  { href: "/connections", label: "Connections", icon: Cable },
+  { href: "/settings", label: "Settings", icon: SlidersHorizontal },
 ] as const;
 
 function NavItem({
@@ -70,7 +70,7 @@ function WorkerPill() {
         )}
       />
       <span className="font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-        worker · {active ? "aktif" : "beklemede"}
+        worker · {active ? "active" : "standby"}
       </span>
     </div>
   );
@@ -84,21 +84,21 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-dvh">
-      {/* ——— Kenar çubuğu (≥lg) ——— */}
+      {/* ——— Sidebar (≥lg) ——— */}
       <aside className="sticky top-0 hidden h-dvh w-60 shrink-0 flex-col border-r bg-sidebar p-4 lg:flex">
         <Link href="/" className="mb-8 flex cursor-pointer items-center gap-3 px-1">
           <RadarMark size={38} />
           <span className="leading-tight">
             <span className="block font-display text-[15px] font-semibold tracking-wide">
-              ETKİNLİK
+              EVENT
             </span>
             <span className="block font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
-              radarı
+              radar
             </span>
           </span>
         </Link>
 
-        <nav aria-label="Ana gezinme" className="flex flex-col gap-1">
+        <nav aria-label="Main navigation" className="flex flex-col gap-1">
           {NAV.map((item) => (
             <NavItem key={item.href} {...item} active={isActive(item.href)} />
           ))}
@@ -107,24 +107,24 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="mt-auto flex flex-col gap-2">
           <WorkerPill />
           <p className="px-1 text-[11px] leading-relaxed text-muted-foreground">
-            Yerel uygulama — tüm veri bu bilgisayarda.
+            Local app — all data stays on this machine.
           </p>
         </div>
       </aside>
 
-      {/* ——— Ana kolon ——— */}
+      {/* ——— Main column ——— */}
       <div className="flex min-w-0 flex-1 flex-col">
-        {/* Mobil üst bar */}
+        {/* Mobile top bar */}
         <header className="sticky top-0 z-10 flex items-center gap-3 border-b bg-background/90 px-4 py-3 backdrop-blur lg:hidden">
           <Link href="/" className="flex cursor-pointer items-center gap-2">
             <RadarMark size={26} />
             <span className="font-display text-sm font-semibold tracking-wide">
-              ETKİNLİK RADARI
+              EVENT RADAR
             </span>
           </Link>
         </header>
         <nav
-          aria-label="Ana gezinme"
+          aria-label="Main navigation"
           className="flex gap-1 overflow-x-auto border-b px-3 py-2 lg:hidden"
         >
           {NAV.map((item) => {
@@ -153,7 +153,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </main>
 
         <footer className="border-t px-4 py-3 text-center font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-          yerel istasyon · sinyal bu makinede kalır
+          local station · the signal stays on this machine
         </footer>
       </div>
     </div>

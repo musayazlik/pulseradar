@@ -26,81 +26,81 @@ export default function OverviewPage() {
         <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-8">
           <div className="max-w-xl">
             <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">
-              kişisel keşif istasyonu
+              personal discovery station
             </p>
             <h1 className="mt-2 font-display text-3xl font-semibold tracking-tight sm:text-4xl">
-              Etkinlik <span className="text-primary phosphor-glow">Radarı</span>
+              Event <span className="text-primary phosphor-glow">Radar</span>
             </h1>
             <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-              LinkedIn ve X'i tarar; Türkiye'deki yazılım, girişim ve yapay zekâ
-              etkinliklerini kaynaklarıyla birlikte toplar. Tüm veri bu
-              bilgisayarda kalır.
+              Scans LinkedIn and X to collect software, startup and AI events
+              across Türkiye together with their sources. All data stays on
+              this machine.
             </p>
             <div className="mt-5 flex flex-wrap gap-2">
               <Link href="/scans" className={buttonVariants({ size: "lg" })}>
                 <CalendarPlus className="size-4" />
-                Yeni tarama başlat
+                Start a new scan
               </Link>
               <Link
                 href="/events"
                 className={buttonVariants({ variant: "outline", size: "lg" })}
               >
-                Etkinlikleri gör
+                View events
                 <ArrowUpRight className="size-4" />
               </Link>
             </div>
           </div>
 
-          {/* canlı radar göstergesi */}
+          {/* live radar indicator */}
           <div className="flex items-center gap-5 sm:flex-col sm:items-end">
             <div className="relative">
               <RadarMark size={120} active={workerActive} />
             </div>
             <div className="text-left sm:text-right">
               <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted-foreground">
-                istasyon durumu
+                station status
               </p>
               <p
                 className={`font-display text-lg font-semibold tracking-wide ${
                   workerActive ? "text-primary phosphor-glow" : "text-muted-foreground"
                 }`}
               >
-                {health.isLoading ? "—" : workerActive ? "TARANIYOR" : "BEKLEMEDE"}
+                {health.isLoading ? "—" : workerActive ? "SCANNING" : "STANDBY"}
               </p>
               <p className="font-mono text-[11px] text-muted-foreground">
-                mod: {health.data?.browserMode ?? "—"} · db {health.data?.database.ok ? "hazır" : "hata"}
+                mode: {health.data?.browserMode ?? "—"} · db {health.data?.database.ok ? "ready" : "error"}
               </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ——— Okuma karoları ——— */}
+      {/* ——— Readout tiles ——— */}
       <section className="reveal-2 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        <StatTile label="yaklaşan etkinlik" value={upcoming.data?.count ?? "…"} />
-        <StatTile label="incelenecek" value={review.data?.count ?? "…"} accent="amber" />
-        <StatTile label="son tarama" accent="muted">
+        <StatTile label="upcoming events" value={upcoming.data?.count ?? "…"} />
+        <StatTile label="needs review" value={review.data?.count ?? "…"} accent="amber" />
+        <StatTile label="last scan" accent="muted">
           {lastScan ? (
             <>
               <p className="mt-2">
                 <StatusChip status={lastScan.status} />
               </p>
               <p className="mt-2 font-mono text-xs tabular-nums text-muted-foreground">
-                {lastScan.counters.eventsCreated} etkinlik · {lastScan.counters.uniquePostsScanned} paylaşım
+                {lastScan.counters.eventsCreated} events · {lastScan.counters.uniquePostsScanned} posts
               </p>
             </>
           ) : (
-            <p className="mt-2 text-sm text-muted-foreground">henüz yok</p>
+            <p className="mt-2 text-sm text-muted-foreground">none yet</p>
           )}
         </StatTile>
         <StatTile label="worker" accent={workerActive ? "primary" : "muted"}>
           <p className="mt-2 font-display text-lg font-semibold">
-            {health.isLoading ? "…" : workerActive ? "aktif" : "beklemede"}
+            {health.isLoading ? "…" : workerActive ? "active" : "standby"}
           </p>
           <p className="mt-1.5 font-mono text-xs text-muted-foreground">
             {health.data?.worker.heartbeatAt
-              ? `sinyal: ${new Date(health.data.worker.heartbeatAt).toLocaleTimeString("tr-TR")}`
-              : "sinyal yok"}
+              ? `signal: ${new Date(health.data.worker.heartbeatAt).toLocaleTimeString("en-US")}`
+              : "no signal"}
           </p>
         </StatTile>
       </section>
@@ -110,13 +110,13 @@ export default function OverviewPage() {
         <Card className="lg:col-span-3">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              yaklaşan etkinlikler
+              upcoming events
             </CardTitle>
             <Link
               href="/events"
               className="cursor-pointer font-mono text-xs text-primary hover:underline"
             >
-              tümü →
+              all →
             </Link>
           </CardHeader>
           <CardContent className="pt-0">
@@ -134,7 +134,7 @@ export default function OverviewPage() {
                         </span>
                         <span className="mt-1 block font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
                           {event.startDate
-                            ? new Date(event.startDate + "T00:00:00Z").toLocaleDateString("tr-TR", { month: "short", timeZone: "UTC" })
+                            ? new Date(event.startDate + "T00:00:00Z").toLocaleDateString("en-US", { month: "short", timeZone: "UTC" })
                             : "?"}
                         </span>
                       </span>
@@ -143,7 +143,7 @@ export default function OverviewPage() {
                           {event.title}
                         </span>
                         <span className="block truncate text-xs text-muted-foreground">
-                          {event.city ?? (event.attendanceMode === "online" ? "online" : "yer belirsiz")}
+                          {event.city ?? (event.attendanceMode === "online" ? "online" : "unknown location")}
                           {event.startTime ? ` · ${event.startTime}` : ""}
                         </span>
                       </span>
@@ -163,9 +163,9 @@ export default function OverviewPage() {
               </ul>
             ) : (
               <p className="py-6 text-center text-sm text-muted-foreground">
-                Henüz yaklaşan etkinlik yok —{" "}
+                No upcoming events yet —{" "}
                 <Link href="/scans" className="text-primary hover:underline">
-                  ilk taramayı başlat
+                  start the first scan
                 </Link>
                 .
               </p>
@@ -176,13 +176,13 @@ export default function OverviewPage() {
         <Card className="lg:col-span-2">
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              son taramalar
+              recent scans
             </CardTitle>
             <Link
               href="/scans"
               className="cursor-pointer font-mono text-xs text-primary hover:underline"
             >
-              tümü →
+              all →
             </Link>
           </CardHeader>
           <CardContent className="pt-0">
@@ -199,7 +199,7 @@ export default function OverviewPage() {
                           {run.id.slice(0, 8)} · {run.kind}
                         </span>
                         <span className="block text-xs text-muted-foreground">
-                          {new Date(run.createdAt).toLocaleString("tr-TR")}
+                          {new Date(run.createdAt).toLocaleString("en-US")}
                         </span>
                       </span>
                       <StatusChip status={run.status} />
@@ -208,7 +208,7 @@ export default function OverviewPage() {
                 ))}
               </ul>
             ) : (
-              <p className="py-6 text-center text-sm text-muted-foreground">Tarama geçmişi boş.</p>
+              <p className="py-6 text-center text-sm text-muted-foreground">No scan history yet.</p>
             )}
           </CardContent>
         </Card>

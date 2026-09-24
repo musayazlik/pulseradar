@@ -1,11 +1,11 @@
 import type { PlatformCapabilities } from "../../core/types/platform";
 
 /**
- * LinkedIn içerik araması ve feed bileşen selector'ları.
- * Probe/deneme koşularında gözlemlenir; boş sonuçda logs/ altına kanıt düşer.
+ * LinkedIn content search and feed component selectors.
+ * Observed during probe runs; empty results drop evidence under logs/.
  */
 export const LINKEDIN_SELECTORS = {
-  /** Her sonuç bir feed-update bileşenidir; data-urn activity URN'i taşır. */
+  /** Each result is a feed-update component carrying a data-urn activity URN. */
   resultContainer: 'div[data-urn^="urn:li:activity"], div.feed-shared-update-v2',
   postText: "div.update-components-text",
   permalink: 'a[href*="/feed/update/urn:li:activity:"], a[href*="/posts/"]',

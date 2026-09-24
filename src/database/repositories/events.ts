@@ -109,7 +109,7 @@ export function listEvents(filter: EventFilter = {}): EventListRow[] {
     conditions.push(eq(events.cityNormalized, normalizeCity(filter.city) as string));
   }
   if (filter.upcomingOnly) {
-    // Tarihi belirsiz kayıtlar listede kalır; "İncelenecek" filtresi status ile.
+    // Records with uncertain dates stay in the list; the "Needs review" filter uses status.
     const today = new Date().toISOString().slice(0, 10);
     conditions.push(or(sql`${events.startDate} IS NULL`, gte(events.startDate, today)));
   }
@@ -166,7 +166,7 @@ export function getEventWithSources(id: string): EventWithSources | null {
   return { ...record, sources: rows };
 }
 
-/** Benzer başlık + aynı tarih: güçlü duplicate adayı. */
+/** Similar title + same date: strong duplicate candidate. */
 export function findDuplicateCandidate(
   normalizedTitle: string,
   startDate: string | null,
@@ -185,7 +185,7 @@ export function findDuplicateCandidate(
   return row ? rowToRecord(row) : null;
 }
 
-/** Aynı serinin farklı tarihleri ayrı etkinliktir: yalnızca tarih eşleşmesinde çağrılır. */
+/** Different dates of the same series are separate events: called only on date matches. */
 export function findEventByRegistrationUrl(url: string): EventRecord | null {
   const row = getDb()
     .select()
@@ -213,7 +213,7 @@ export function listCities(): string[] {
   return rows.map((r) => r.city!).sort();
 }
 
-/** Bir gönderiye bağlı etkinlik ID'leri (EventSource üzerinden). */
+/** Event ids linked to a post (via EventSource). */
 export function listEventIdsForPost(postId: string): string[] {
   return getDb()
     .select({ eventId: eventSources.eventId })

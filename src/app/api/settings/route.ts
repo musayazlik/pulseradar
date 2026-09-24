@@ -21,7 +21,7 @@ export async function PUT(req: NextRequest): Promise<Response> {
   try {
     body = await req.json();
   } catch {
-    return jsonError("geçersiz JSON", 400);
+    return jsonError("invalid JSON", 400);
   }
 
   try {

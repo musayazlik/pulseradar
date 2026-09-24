@@ -3,7 +3,7 @@ import path from "node:path";
 import fs from "node:fs";
 
 /**
- * Veri kökü: ~/Library/Application Support/EventRadar/
+ * Data root: ~/Library/Application Support/EventRadar/
  * EVENT_RADAR_DATA_DIR ile.override edilebilir.
  */
 export function getDataDir(): string {

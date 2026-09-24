@@ -18,7 +18,7 @@ function openDb(): BetterSQLite3Database<typeof schema> {
   ensureDataDirs();
   const dbPath = getDatabasePath();
   const sqlite = new Database(dbPath);
-  // WAL ve foreign_keys her bağlantıda uygulanır.
+  // WAL and foreign_keys are enforced on every connection.
   sqlite.pragma("journal_mode = WAL");
   sqlite.pragma("foreign_keys = ON");
   sqlite.pragma("busy_timeout = 5000");
@@ -40,7 +40,7 @@ export function getSqlite(): Database.Database {
   return cachedSqlite!;
 }
 
-/** Testler için süreç içi önbelleği sıfırlar. */
+/** Resets the in-process cache for tests. */
 export function resetDbForTests(): void {
   cachedSqlite?.close();
   cachedDb = null;

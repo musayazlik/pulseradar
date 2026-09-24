@@ -25,15 +25,15 @@ async function main(): Promise<void> {
     warn: (msg: string) => console.warn(`[${workerId}] ${msg}`),
   };
 
-  // DB + config erken doğrulanır.
+  // DB + config are validated early.
   getDb();
   const config = loadConfig();
-  logger.info(`veri dizini hazır; platformlar: ${config.enabledPlatforms.join(", ")}`);
+  logger.info(`data directory ready; platforms: ${config.enabledPlatforms.join(", ")}`);
 
   const lock = isProfileLocked();
   if (lock.locked) {
     console.error(
-      `Tarayıcı profili kilitli (PID ${lock.contents?.pid}). İkinci worker aynı profili açamaz.`,
+      `Browser profile is locked (PID ${lock.contents?.pid}). A second worker cannot open the same profile.`,
     );
     process.exit(1);
   }
@@ -41,7 +41,7 @@ async function main(): Promise<void> {
 
   const interrupted = markInterruptedRuns();
   if (interrupted > 0) {
-    logger.info(`${interrupted} yarıda kalmış iş 'interrupted' işaretlendi.`);
+    logger.info(`${interrupted} interrupted job(s) marked as 'interrupted'.`);
   }
 
   let stopping = false;
@@ -50,13 +50,13 @@ async function main(): Promise<void> {
 
   const onSignal = (signal: NodeJS.Signals) => {
     if (stopping) {
-      // İkinci sinyal: askıda kalan adımı beklemek yerine zorla çık.
-      // Kilit dosyası kalıcı; bir sonraki worker ölü PID'yi görüp temizler.
-      logger.warn(`${signal} tekrar alındı; zorla çıkılıyor.`);
+      // Second signal: force exit instead of waiting on a stuck step.
+      // The lock file persists; the next worker sees the dead PID and cleans it up.
+      logger.warn(`${signal} received again; forcing exit.`);
       process.exit(1);
     }
     stopping = true;
-    logger.info("kapatma sinyali; mevcut adım bitince çıkılacak (ikinci sinyal zorla kapatır).");
+    logger.info("shutdown signal; exiting after the current step (second signal forces exit).");
   };
   process.on("SIGINT", onSignal);
   process.on("SIGTERM", onSignal);
@@ -68,7 +68,7 @@ async function main(): Promise<void> {
         await sleep(POLL_MS);
         continue;
       }
-      logger.info(`iş alındı: ${run.kind} ${run.id}`);
+      logger.info(`job claimed: ${run.kind} ${run.id}`);
 
       const beat = setInterval(() => {
         heartbeatRun(run.id, workerId, LEASE_MS);
@@ -79,10 +79,10 @@ async function main(): Promise<void> {
         const detail = getRunDetail(run.id);
         if (detail) {
           const result = await runJob(detail);
-          logger.info(`iş bitti: ${run.id} -> ${result.status}${result.stopReason ? ` (${result.stopReason})` : ""}`);
+          logger.info(`job finished: ${run.id} -> ${result.status}${result.stopReason ? ` (${result.stopReason})` : ""}`);
         }
       } catch (err) {
-        logger.warn(`iş hatası: ${(err as Error).message}`);
+        logger.warn(`job error: ${(err as Error).message}`);
       } finally {
         clearInterval(beat);
       }
@@ -90,12 +90,12 @@ async function main(): Promise<void> {
   } finally {
     releaseProfileLock();
     getSqlite().close();
-    logger.info("worker kapandı.");
+    logger.info("worker shut down.");
   }
 }
 
 function sleep(ms: number): Promise<void> {
-  // unref YOK: bekleme sırasında olay döngüsünü canlı tutar.
+  // NO unref: keeps the event loop alive while waiting.
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 

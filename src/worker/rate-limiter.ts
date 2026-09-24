@@ -1,4 +1,4 @@
-/** Gezinme/scroll arası bekleme: min-max arasında rastgele; süreç boyunca olay döngüsü canlı kalır. */
+/** Navigation/scroll delay: random between min and max; keeps the event loop alive for the whole process. */
 export function createRateLimiter(
   minDelayMs: number,
   maxDelayMs: number,

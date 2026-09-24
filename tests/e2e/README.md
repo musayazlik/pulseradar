@@ -1,7 +1,8 @@
-# e2e (Playwright kabul senaryoları)
+# e2e (Playwright acceptance scenarios)
 
-Aşama 3+'ta canlı tarayıcıyla çalışacak kabul senaryoları burada tutulur:
-boş sonuç, oturum süresi dolması, challenge, değişen selector, platform hatası,
-yeniden tarama (veri çoğaltmama) ve tek profile iki süreç erişimi.
+Acceptance scenarios that will run against a live browser from Phase 3 onward:
+empty results, expired sessions, challenges, changed selectors, platform
+errors, rescans (no data duplication) and two processes reaching a single
+profile.
 
-Bu testler kullanıcı MacBook'unda doğrulanmadan tamamlandı işaretlenmez.
+These tests are not marked done until verified on the user's MacBook.

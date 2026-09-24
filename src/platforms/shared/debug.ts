@@ -4,8 +4,8 @@ import type { Page } from "playwright-core";
 import { getLogsDir } from "../../core/config/paths";
 
 /**
- * "Sonuç yok" ile "DOM değişti"yi ayırt etmek için boş sonuçlarda kanıt
- * (HTML + ekran görüntüsü) yerel logs dizinine kaydedilir. Oturum değeri içermez.
+ * To tell "no results" apart from "DOM changed", empty results save evidence
+ * (HTML + screenshot) into the local logs directory. Contains no session values.
  */
 export async function captureDebug(
   page: Page,
@@ -20,7 +20,7 @@ export async function captureDebug(
     fs.writeFileSync(`${base}.html`, await page.content());
     await page.screenshot({ path: `${base}.png` });
   } catch {
-    // Tanılama kaydı başarısız olabilir; akışı bozmaz.
+    // Diagnostic recording can fail; it never breaks the flow.
   }
   return base;
 }

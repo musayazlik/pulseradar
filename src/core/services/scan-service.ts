@@ -9,7 +9,6 @@ import type {
   ScanRunRecord,
 } from "../types/scan";
 import {
-  countRuns,
   getRunDetail,
   insertRun,
   insertTasks,
@@ -32,35 +31,23 @@ export interface ScanRunSummary {
   counters: ScanCounters;
 }
 
-/**
- * Sorgular bütün kelimeleri şehirlerle çarpmaz; limit dahilinde seçilir.
- * Sonraki çalıştırmalarda döndürülerek kapsama genişletilir (basit offset rotasyonu).
- */
 function dedupe(list: string[]): string[] {
   return [...new Set(list.map((s) => s.trim()).filter(Boolean))];
 }
 
-function rotate(list: string[], offset: number): string[] {
-  if (list.length === 0) return list;
-  const o = ((offset % list.length) + list.length) % list.length;
-  return [...list.slice(o), ...list.slice(0, o)];
-}
-
 export interface SelectQueriesInput {
-  /** Kullanıcının bu tarama için yazdığı anahtar kelimeler. */
+  /** Keywords the user wrote for this scan. */
   customKeywords: string[];
-  /** Kullanıcının bu tarama için yazdığı hashtag'ler (# eklenmeden). */
+  /** Hashtags the user wrote for this scan (without #). */
   customHashtags: string[];
   configKeywords: string[];
   configHashtags: string[];
-  maxQueries: number;
-  rotationOffset: number;
 }
 
 /**
- * Belge kuralı (§10): kullanıcı özel keyword/hashtag girdiyse ÖNCE o uygulanır;
- * kalan sorgu hakkı varsayılan havuzdan döndürülerek (kapsama genişletme) doldurulur.
- * Döndürme sayacı yalnızca scan türündeki işlerle ilerler.
+ * Every word the user provides is scanned: custom inputs are never trimmed,
+ * the rest is completed from the Settings list. No trimming or deferring
+ * to a later run (rotation) happens.
  */
 export function selectQueries(input: SelectQueriesInput): {
   queries: string[];
@@ -75,16 +62,9 @@ export function selectQueries(input: SelectQueriesInput): {
     ...input.configHashtags.map((tag) => `#${tag}`),
   ]).filter((q) => !custom.includes(q));
 
-  const customSelected = custom.slice(0, Math.max(input.maxQueries, 0));
-  const remaining = input.maxQueries - customSelected.length;
-  const configSelected =
-    remaining > 0
-      ? rotate(configPool, input.rotationOffset).slice(0, remaining)
-      : [];
-
   return {
-    queries: [...customSelected, ...configSelected],
-    customCount: customSelected.length,
+    queries: [...custom, ...configPool],
+    customCount: custom.length,
   };
 }
 
@@ -96,7 +76,7 @@ export function createScanRun(input: CreateScanInput): ScanRunDetail {
   );
   if (platforms.length === 0) {
     throw new ScanValidationError(
-      "MVP'de yalnızca linkedin ve x taraması yapılabilir (instagram/tiktok ikinci aşama).",
+      "The MVP can only scan linkedin and x (instagram/tiktok are a later phase).",
     );
   }
 
@@ -106,22 +86,18 @@ export function createScanRun(input: CreateScanInput): ScanRunDetail {
   const lastDays = input.lastDays ?? config.filters.lastDays;
   const includeOnline = input.includeOnline ?? config.filters.includeOnline;
 
-  // Döndürme kapsaması yalnızca scan işleriyle ilerler; session_check/open_login
-  // sayacı kaydırmamalı.
-  const rotationOffset = countRuns("scan");
+  // Every user-provided word is scanned in this run.
   const { queries, customCount } = selectQueries({
     customKeywords,
     customHashtags,
     configKeywords: config.keywords,
     configHashtags: config.hashtags,
-    maxQueries: config.limits.maxQueriesPerPlatform,
-    rotationOffset,
   });
   if (queries.length === 0) {
     throw new ScanValidationError(
       customCount === 0 && config.keywords.length === 0 && config.hashtags.length === 0
-        ? "Ayarlarında anahtar kelime veya hashtag yok; Ayarlar ekranından ekle."
-        : "Tarama için kullanılabilecek sorgu üretilemedi.",
+        ? "No keywords or hashtags in Settings; add them on the Settings screen."
+        : "Could not produce a query usable for scanning.",
     );
   }
 

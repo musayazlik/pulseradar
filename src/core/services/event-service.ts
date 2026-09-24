@@ -31,9 +31,9 @@ import { normalizeUrl } from "../utils/url";
 import { nowIso } from "../utils/date";
 
 /**
- * Durum okuma sırasında güncel saate göre hesaplanır; kullanıcı haftalar
- * sonra açtığında eski `upcoming` gösterilmez. Elle düzenlenmiş/reddedilmiş
- * kayıtların durumu ezilmez.
+ * Status is recomputed against the current clock when read, so stale `upcoming`
+ * values are not shown weeks later. Manually edited/rejected records
+ * never have their status overwritten.
  */
 export function computeDynamicStatus(event: EventRecord, now = new Date()): EventStatus {
   if (event.status === "rejected" || event.status === "needs_review") {
@@ -78,7 +78,7 @@ export interface EventPatch {
   status?: "upcoming" | "needs_review" | "rejected";
 }
 
-/** Kullanıcının elle düzelttiği alanlar sonraki taramalarda ezilmez. */
+/** Fields the user edited manually are never overwritten by later scans. */
 export function applyEventPatch(id: string, patch: EventPatch): EventRecord | null {
   const existing = getEventById(id);
   if (!existing) return null;
@@ -126,14 +126,14 @@ export interface IngestResult {
 
 export interface IngestOptions {
   defaultTimeZone: string;
-  /** Katı son-X-gün filtresi; publishedAt belirsiz olanlar ayrıca sayılır. */
+  /** Strict last-X-days filter; records with unknown publishedAt are counted separately. */
   lastDays: number | null;
   taskId: string | null;
 }
 
 /**
- * Tarama akışının kalbi: paylaşımı kaydet, etkinlik çıkarımı yap,
- * duplicate kararı uygula, kaynak bağlantısını kur.
+ * Heart of the scan stream: persist the post, extract events,
+ * apply the duplicate decision and link the source.
  */
 export function ingestPost(
   draft: SocialPostDraft,

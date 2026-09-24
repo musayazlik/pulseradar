@@ -1,32 +1,33 @@
 import { cn } from "@/lib/utils";
 
 /**
- * Semantik durum çipi: renk tek başına anlam taşımaz; metin her zaman var.
- * Küçük harf · mono · geniş harf aralığı ile konsol okuması sağlar.
+ * Semantic status chip: color alone never carries meaning; the label is
+ * always present. Lowercase · mono · wide letter spacing keeps the console
+ * reading style.
  */
 const STATUS_MAP: Record<string, { label: string; className: string; live?: boolean }> = {
-  // etkinlik
-  upcoming: { label: "yaklaşan", className: "text-primary border-primary/40 bg-primary/10" },
-  ongoing: { label: "devam ediyor", className: "text-cyan-300 border-cyan-300/40 bg-cyan-300/10", live: true },
-  expired: { label: "geçmiş", className: "text-muted-foreground border-border bg-muted" },
-  needs_review: { label: "incelenecek", className: "text-amber-300 border-amber-300/40 bg-amber-300/10" },
-  rejected: { label: "reddedildi", className: "text-red-300 border-red-300/40 bg-red-300/10" },
-  // tarama işi
-  queued: { label: "kuyrukta", className: "text-cyan-300 border-cyan-300/40 bg-cyan-300/10" },
-  running: { label: "çalışıyor", className: "text-primary border-primary/40 bg-primary/10", live: true },
-  completed: { label: "tamam", className: "text-primary border-primary/40 bg-primary/10" },
-  partial: { label: "kısmi", className: "text-amber-300 border-amber-300/40 bg-amber-300/10" },
-  failed: { label: "hata", className: "text-red-300 border-red-300/40 bg-red-300/10" },
-  cancelled: { label: "iptal", className: "text-muted-foreground border-border bg-muted" },
-  interrupted: { label: "kesildi", className: "text-red-300 border-red-300/40 bg-red-300/10" },
-  skipped: { label: "atlandı", className: "text-muted-foreground border-border bg-muted" },
-  // oturum
-  ready: { label: "hazır", className: "text-primary border-primary/40 bg-primary/10", live: true },
-  login_required: { label: "giriş gerek", className: "text-amber-300 border-amber-300/40 bg-amber-300/10" },
+  // event
+  upcoming: { label: "upcoming", className: "text-primary border-primary/40 bg-primary/10" },
+  ongoing: { label: "ongoing", className: "text-cyan-300 border-cyan-300/40 bg-cyan-300/10", live: true },
+  expired: { label: "past", className: "text-muted-foreground border-border bg-muted" },
+  needs_review: { label: "needs review", className: "text-amber-300 border-amber-300/40 bg-amber-300/10" },
+  rejected: { label: "rejected", className: "text-red-300 border-red-300/40 bg-red-300/10" },
+  // scan job
+  queued: { label: "queued", className: "text-cyan-300 border-cyan-300/40 bg-cyan-300/10" },
+  running: { label: "running", className: "text-primary border-primary/40 bg-primary/10", live: true },
+  completed: { label: "done", className: "text-primary border-primary/40 bg-primary/10" },
+  partial: { label: "partial", className: "text-amber-300 border-amber-300/40 bg-amber-300/10" },
+  failed: { label: "failed", className: "text-red-300 border-red-300/40 bg-red-300/10" },
+  cancelled: { label: "cancelled", className: "text-muted-foreground border-border bg-muted" },
+  interrupted: { label: "interrupted", className: "text-red-300 border-red-300/40 bg-red-300/10" },
+  skipped: { label: "skipped", className: "text-muted-foreground border-border bg-muted" },
+  // session
+  ready: { label: "ready", className: "text-primary border-primary/40 bg-primary/10", live: true },
+  login_required: { label: "login required", className: "text-amber-300 border-amber-300/40 bg-amber-300/10" },
   challenge: { label: "challenge", className: "text-amber-300 border-amber-300/40 bg-amber-300/10" },
-  unsupported: { label: "desteklenmiyor", className: "text-muted-foreground border-border bg-muted" },
-  error: { label: "hata", className: "text-red-300 border-red-300/40 bg-red-300/10" },
-  unknown: { label: "bilinmiyor", className: "text-muted-foreground border-border bg-muted" },
+  unsupported: { label: "unsupported", className: "text-muted-foreground border-border bg-muted" },
+  error: { label: "error", className: "text-red-300 border-red-300/40 bg-red-300/10" },
+  unknown: { label: "unknown", className: "text-muted-foreground border-border bg-muted" },
 };
 
 export function StatusChip({

@@ -40,8 +40,8 @@ export type UpsertPostResult =
   | { outcome: "reseen"; post: SocialPostRecord };
 
 /**
- * Kaynak paylaşım tekilleştirme: (platform, platformPostId) veya
- * (platform, canonicalUrl) eşleşmesinde yeni kayıt açılmaz; lastSeenAt güncellenir.
+ * Source post deduplication: on a (platform, platformPostId) or
+ * (platform, canonicalUrl) match, no new record is opened; lastSeenAt is updated.
  */
 export function upsertPost(input: UpsertPostInput): UpsertPostResult {
   const db = getDb();

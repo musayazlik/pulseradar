@@ -34,7 +34,7 @@ export async function GET(
   if (!isLocalRequest(req)) return jsonError("yerel olmayan istek", 403);
   const { id } = await params;
   const event = getEventDetail(id);
-  if (!event) return jsonError("etkinlik bulunamadı", 404);
+  if (!event) return jsonError("event not found", 404);
   return Response.json(event);
 }
 
@@ -49,7 +49,7 @@ export async function PATCH(
   try {
     body = await req.json();
   } catch {
-    return jsonError("geçersiz JSON", 400);
+    return jsonError("invalid JSON", 400);
   }
 
   const parsed = patchSchema.safeParse(body);
@@ -59,11 +59,11 @@ export async function PATCH(
 
   if (parsed.data.status === "rejected") {
     const rejected = rejectEvent(id);
-    if (!rejected) return jsonError("etkinlik bulunamadı", 404);
+    if (!rejected) return jsonError("event not found", 404);
     return Response.json(rejected);
   }
 
   const updated = applyEventPatch(id, parsed.data);
-  if (!updated) return jsonError("etkinlik bulunamadı", 404);
+  if (!updated) return jsonError("event not found", 404);
   return Response.json(updated);
 }

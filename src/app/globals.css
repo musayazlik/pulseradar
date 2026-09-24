@@ -48,7 +48,7 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-/* ——— Gece Radarı: koyu konsol teması (varsayılan) ——— */
+/* ——— Night Radar: dark console theme (default) ——— */
 :root,
 .dark {
   --background: oklch(0.155 0.014 230);
@@ -85,7 +85,7 @@
   --sidebar-ring: oklch(0.82 0.19 158);
 }
 
-/* ——— Gündüz raporu: açık tema ——— */
+/* ——— Day report: light theme ——— */
 :root:not(.dark) {
   --background: oklch(0.975 0.005 220);
   --foreground: oklch(0.2 0.02 230);
@@ -144,7 +144,7 @@
 
 /* ——— Radar motifi ——— */
 
-/* Nokta ızgaralı konsol zemini */
+/* Dot-grid console floor */
 .radar-grid {
   background-image: radial-gradient(
     circle at 1px 1px,
@@ -154,7 +154,7 @@
   background-size: 22px 22px;
 }
 
-/* Dönen tarama huzmesi */
+/* Rotating scan beam */
 .radar-scope {
   position: relative;
   overflow: hidden;
@@ -178,7 +178,7 @@
   }
 }
 
-/* Fosfor parıltısı */
+/* Phosphor glow */
 .phosphor-glow {
   text-shadow: 0 0 14px color-mix(in oklch, var(--primary) 45%, transparent);
 }
@@ -188,7 +188,7 @@
     0 0 22px color-mix(in oklch, var(--primary) 22%, transparent);
 }
 
-/* Canlı sinyal noktası */
+/* Live signal dot */
 .signal-dot {
   animation: signal-pulse 2s ease-in-out infinite;
 }
@@ -202,7 +202,7 @@
   }
 }
 
-/* Sayfa girişi: kademeli görünme */
+/* Page entrance: staggered reveal */
 .reveal {
   animation: reveal-up 0.35s ease-out both;
 }

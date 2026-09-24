@@ -1,7 +1,7 @@
 import type { RawPost, SocialPostDraft } from "../../core/types/platform";
 import { extractUrls } from "../../core/utils/url";
 
-/** Platformdan bağımsız ham veriden taslak üretir; DOM çıkarımı adapter'dadır. */
+/** Builds a draft from platform-agnostic raw data; DOM extraction lives in the adapter. */
 export function parseLinkedInPost(raw: RawPost): SocialPostDraft | null {
   if (!raw.text || raw.text.trim().length === 0) return null;
   const permalink = raw.canonicalUrl ?? (raw.platformPostId
@@ -22,7 +22,7 @@ export function parseLinkedInPost(raw: RawPost): SocialPostDraft | null {
   };
 }
 
-/** Gönderiden kalıcı bağlantı çıkarımı. */
+/** Permalink extraction from a post. */
 export function getLinkedInPostUrl(raw: RawPost): string | null {
   return raw.canonicalUrl;
 }

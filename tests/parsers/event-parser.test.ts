@@ -4,7 +4,7 @@ import { extractEventCandidates } from "@/core/parsers/event-parser";
 const defaultOptions = { defaultTimeZone: "Europe/Istanbul" };
 
 describe("event-parser", () => {
-  it("tarih + etkinlik niyetiyle upcoming adayı üretir", () => {
+  it("produces an upcoming candidate with date + event intent", () => {
     const candidates = extractEventCandidates(
       {
         platform: "linkedin",
@@ -26,7 +26,7 @@ describe("event-parser", () => {
     expect(candidates[0]?.needsReview).toBe(false);
   });
 
-  it("güçlü duyuru ama tarih yoksa incelemeye bırakır", () => {
+  it("sends strong announcements without a date to review", () => {
     const candidates = extractEventCandidates(
       {
         platform: "x",
@@ -46,7 +46,7 @@ describe("event-parser", () => {
     expect(candidates[0]?.startDate).toBeNull();
   });
 
-  it("yalnızca 'startup' geçmesi yetmez", () => {
+  it("the mere mention of 'startup' is not enough", () => {
     const candidates = extractEventCandidates(
       {
         platform: "x",
@@ -64,7 +64,7 @@ describe("event-parser", () => {
     expect(candidates).toHaveLength(0);
   });
 
-  it("iş ilanı metni etkinlik sayılmaz", () => {
+  it("a job-ad text is not counted as an event", () => {
     const candidates = extractEventCandidates(
       {
         platform: "linkedin",
@@ -82,7 +82,7 @@ describe("event-parser", () => {
     expect(candidates).toHaveLength(0);
   });
 
-  it("paylaşan hesabı otomatik organizatör yazmaz", () => {
+  it("does not automatically write the posting account as organizer", () => {
     const candidates = extractEventCandidates(
       {
         platform: "linkedin",

@@ -6,11 +6,12 @@ export default function ConnectionsPage() {
   return (
     <div className="space-y-6">
       <div className="reveal">
-        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">oturum hattı</p>
-        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Bağlantılar</h1>
+        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">session line</p>
+        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Connections</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Chrome modu, profil durumu ve platform oturumları. Şifreler uygulamaya
-          girilmez; giriş tarayıcı penceresinde yapılır ve profil saklanır.
+          Chrome mode, profile status and platform sessions. Passwords are never
+          entered into the app; sign-in happens in the browser window and the
+          profile keeps it.
         </p>
       </div>
       <div className="reveal-2">

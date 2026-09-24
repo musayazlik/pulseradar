@@ -17,6 +17,6 @@ export interface SocialPostRecord {
 
 export interface PostWithPlatformRef {
   post: SocialPostRecord;
-  /** Bu gönderinin bağladığı etkinlikler. */
+  /** Events linked to this post. */
   eventIds: string[];
 }

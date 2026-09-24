@@ -45,7 +45,7 @@ function EventDetailContent({ id }: { id: string }) {
   const [registrationUrl, setRegistrationUrl] = useState("");
   const [description, setDescription] = useState("");
 
-  if (query.isLoading) return <p className="font-mono text-sm text-muted-foreground">yükleniyor…</p>;
+  if (query.isLoading) return <p className="font-mono text-sm text-muted-foreground">loading…</p>;
   if (query.isError) return <p className="text-sm text-destructive">{(query.error as Error).message}</p>;
   const event = query.data!;
 
@@ -69,7 +69,7 @@ function EventDetailContent({ id }: { id: string }) {
         registrationUrl: registrationUrl || null,
         description: description || null,
       });
-      toast.success("Etkinlik güncellendi; bu alanlar taramalarda ezilmez.");
+      toast.success("Event updated; these fields will not be overwritten by scans.");
       setEditing(false);
       await queryClient.invalidateQueries({ queryKey: ["event", id] });
     } catch (err) {
@@ -80,7 +80,7 @@ function EventDetailContent({ id }: { id: string }) {
   const reject = async () => {
     try {
       await api.patchEvent(id, { status: "rejected" });
-      toast.success("Etkinlik reddedildi.");
+      toast.success("Event rejected.");
       await queryClient.invalidateQueries({ queryKey: ["event", id] });
     } catch (err) {
       toast.error((err as Error).message);
@@ -91,7 +91,7 @@ function EventDetailContent({ id }: { id: string }) {
     <div className="space-y-6">
       <div className="reveal">
         <Link href="/events" className="font-mono text-xs text-muted-foreground hover:text-primary hover:underline">
-          ← etkinlikler
+          ← events
         </Link>
         <div className="mt-2 flex flex-wrap items-start justify-between gap-4">
           <div className="min-w-0">
@@ -101,22 +101,22 @@ function EventDetailContent({ id }: { id: string }) {
             <div className="mt-2 flex flex-wrap items-center gap-2 font-mono text-xs text-muted-foreground">
               <StatusChip status={event.status} />
               <span className="tabular-nums">
-                {event.startDate ?? "tarih belirsiz"}
+                {event.startDate ?? "date unknown"}
                 {event.startTime ? ` · ${event.startTime}` : ""}
               </span>
               {event.city && <span>· {event.city}</span>}
               {event.attendanceMode !== "unknown" && <span>· {event.attendanceMode}</span>}
-              <span>· güven {event.confidence}</span>
+              <span>· confidence {event.confidence}</span>
             </div>
           </div>
           <div className="flex gap-2">
             {!editing && (
               <Button size="sm" variant="outline" onClick={startEditing}>
-                Düzelt
+                Edit
               </Button>
             )}
             <Button size="sm" variant="destructive" onClick={reject}>
-              Reddet
+              Reject
             </Button>
           </div>
         </div>
@@ -126,37 +126,37 @@ function EventDetailContent({ id }: { id: string }) {
         <Card className="reveal-2">
           <CardHeader>
             <CardTitle className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              alanları düzelt
+              edit fields
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 sm:grid-cols-2">
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="ev-title">Başlık</Label>
+              <Label htmlFor="ev-title">Title</Label>
               <Input id="ev-title" value={title} onChange={(e) => setTitle(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ev-date">Başlangıç tarihi (YYYY-AA-GG)</Label>
+              <Label htmlFor="ev-date">Start date (YYYY-MM-DD)</Label>
               <Input id="ev-date" className="font-mono" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ev-city">Şehir</Label>
+              <Label htmlFor="ev-city">City</Label>
               <Input id="ev-city" value={city} onChange={(e) => setCity(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ev-org">Organizatör</Label>
+              <Label htmlFor="ev-org">Organizer</Label>
               <Input id="ev-org" value={organizer} onChange={(e) => setOrganizer(e.target.value)} />
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="ev-url">Kayıt bağlantısı</Label>
+              <Label htmlFor="ev-url">Registration link</Label>
               <Input id="ev-url" className="font-mono text-xs" value={registrationUrl} onChange={(e) => setRegistrationUrl(e.target.value)} />
             </div>
             <div className="space-y-1.5 sm:col-span-2">
-              <Label htmlFor="ev-desc">Açıklama</Label>
+              <Label htmlFor="ev-desc">Description</Label>
               <Textarea id="ev-desc" rows={4} value={description} onChange={(e) => setDescription(e.target.value)} />
             </div>
             <div className="flex gap-2">
-              <Button size="sm" onClick={save}>Kaydet</Button>
-              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Vazgeç</Button>
+              <Button size="sm" onClick={save}>Save</Button>
+              <Button size="sm" variant="ghost" onClick={() => setEditing(false)}>Discard</Button>
             </div>
           </CardContent>
         </Card>
@@ -164,14 +164,14 @@ function EventDetailContent({ id }: { id: string }) {
         <Card className="reveal-2">
           <CardHeader>
             <CardTitle className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-              bilgiler
+              details
             </CardTitle>
           </CardHeader>
           <CardContent className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
-            <Field label="bitiş">{event.endDate ?? "—"}</Field>
-            <Field label="mekân">{event.venue ?? "—"}</Field>
-            <Field label="organizatör">{event.organizer ?? "—"}</Field>
-            <Field label="kayıt">
+            <Field label="end">{event.endDate ?? "—"}</Field>
+            <Field label="venue">{event.venue ?? "—"}</Field>
+            <Field label="organizer">{event.organizer ?? "—"}</Field>
+            <Field label="registration">
               {event.registrationUrl ? (
                 <a
                   href={event.registrationUrl}
@@ -182,7 +182,7 @@ function EventDetailContent({ id }: { id: string }) {
                   {event.registrationUrl}
                 </a>
               ) : (
-                "Bulunamadı"
+                "Not found"
               )}
             </Field>
             {event.description && (
@@ -197,12 +197,12 @@ function EventDetailContent({ id }: { id: string }) {
       <Card className="reveal-3">
         <CardHeader>
           <CardTitle className="font-mono text-xs uppercase tracking-[0.18em] text-muted-foreground">
-            kaynak paylaşımlar · {event.sources.length}
+            source posts · {event.sources.length}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {event.sources.length === 0 && (
-            <p className="text-sm text-muted-foreground">Kaynak yok.</p>
+            <p className="text-sm text-muted-foreground">No sources.</p>
           )}
           {event.sources.map((source) => (
             <div key={source.postId} className="rounded-md border bg-background/50 p-3">
@@ -220,18 +220,18 @@ function EventDetailContent({ id }: { id: string }) {
                     target="_blank"
                     rel="noreferrer noopener"
                   >
-                    orijinal paylaşım ↗
+                    original post ↗
                   </a>
                 </div>
                 <span className="font-mono text-xs tabular-nums text-muted-foreground">
-                  {source.publishedAt ?? "tarih yok"}
+                  {source.publishedAt ?? "no date"}
                 </span>
               </div>
               {source.evidenceJson && (
                 <>
                   <Separator className="my-2.5" />
                   <p className="break-all font-mono text-[11px] leading-relaxed text-muted-foreground">
-                    <span className="text-primary">kanıt ›</span> {source.evidenceJson}
+                    <span className="text-primary">evidence ›</span> {source.evidenceJson}
                   </p>
                 </>
               )}

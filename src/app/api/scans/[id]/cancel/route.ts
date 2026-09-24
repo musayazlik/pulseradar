@@ -13,9 +13,9 @@ export async function POST(
   const { id } = await params;
 
   const detail = getScanDetail(id);
-  if (!detail) return jsonError("tarama bulunamadı", 404);
+  if (!detail) return jsonError("scan not found", 404);
 
-  // İptal talebi DB'ye yazılır; worker adımlar arasında kontrol eder.
+  // The cancel request is written to the DB; the worker checks it between steps.
   const requested = cancelScan(id);
   return Response.json({ runId: id, cancelRequested: requested });
 }

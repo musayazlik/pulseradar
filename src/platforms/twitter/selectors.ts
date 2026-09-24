@@ -1,8 +1,8 @@
 import type { PlatformCapabilities } from "../../core/types/platform";
 
 /**
- * X (Twitter) arama ve oturum marker'ları. Platform anahtarı `x`;
- * `twitter` yalnızca CLI alias'ıdır.
+ * X (Twitter) search and session markers. The platform key is `x`;
+ * `twitter` is only a CLI alias.
  */
 export const X_SELECTORS = {
   tweetArticle: 'article[data-testid="tweet"], article',
@@ -10,7 +10,7 @@ export const X_SELECTORS = {
   time: "time[datetime]",
   statusLink: 'a[href*="/status/"]',
   userNameLink: 'a[data-testid="User-Name"]',
-  /** Oturum yoksa header'daki Log in düğmesi. */
+  /** The Log in button in the header when there is no session. */
   loginButton: '[data-testid="loginButton"], a[href="/login"]',
   primaryColumn: '[data-testid="primaryColumn"]',
   emptyResultMarker: "[data-testid='emptyState']",

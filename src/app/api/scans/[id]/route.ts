@@ -12,6 +12,6 @@ export async function GET(
   if (!isLocalRequest(req)) return jsonError("yerel olmayan istek", 403);
   const { id } = await params;
   const detail = getScanDetail(id);
-  if (!detail) return jsonError("tarama bulunamadı", 404);
+  if (!detail) return jsonError("scan not found", 404);
   return Response.json(detail);
 }

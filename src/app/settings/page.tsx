@@ -47,7 +47,7 @@ export default function SettingsPage() {
       setConfig(saved);
       setKeywordsText(saved.keywords.join("\n"));
       setHashtagsText(saved.hashtags.join("\n"));
-      toast.success("Ayarlar kaydedildi.");
+      toast.success("Settings saved.");
       await queryClient.invalidateQueries({ queryKey: ["settings"] });
     } catch (err) {
       toast.error((err as Error).message);
@@ -55,7 +55,7 @@ export default function SettingsPage() {
   };
 
   if (query.isLoading || !config) {
-    return <p className="font-mono text-sm text-muted-foreground">yükleniyor…</p>;
+    return <p className="font-mono text-sm text-muted-foreground">loading…</p>;
   }
 
   const update = (patch: Partial<SearchConfig>) =>
@@ -68,22 +68,22 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <div className="reveal">
-        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">konfigürasyon</p>
-        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Ayarlar</h1>
+        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">configuration</p>
+        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Settings</h1>
         <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-          Sorgular, beklemeler ve limitler — <code className="font-mono text-xs">search.json</code>{" "}
-          dosyasına tek kaynaktan, atomik yazılır.
+          Queries, delays and limits — written atomically to the single{" "}
+          <code className="font-mono text-xs">search.json</code> source.
         </p>
       </div>
 
       <Card className="reveal-2">
         <CardHeader>
-          <SectionTitle>sorgular</SectionTitle>
+          <SectionTitle>queries</SectionTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="set-keywords" className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              anahtar kelimeler · satır başına bir
+              keywords · one per line
             </Label>
             <Textarea
               id="set-keywords"
@@ -95,7 +95,7 @@ export default function SettingsPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="set-hashtags" className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              hashtag'ler · # olmadan
+              hashtags · without #
             </Label>
             <Textarea
               id="set-hashtags"
@@ -110,23 +110,23 @@ export default function SettingsPage() {
 
       <Card className="reveal-2">
         <CardHeader>
-          <SectionTitle>filtreler</SectionTitle>
+          <SectionTitle>filters</SectionTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
           <div className="space-y-1.5">
             <Label htmlFor="set-city" className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              varsayılan şehir
+              default city
             </Label>
             <Input
               id="set-city"
               value={config.filters.city ?? ""}
-              placeholder="boş = hepsi"
+              placeholder="empty = all"
               onChange={(e) => updateFilters({ city: e.target.value || null })}
             />
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="set-days" className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              son x gün
+              last x days
             </Label>
             <Input
               id="set-days"
@@ -145,7 +145,7 @@ export default function SettingsPage() {
               onCheckedChange={(checked) => updateFilters({ includeOnline: checked })}
             />
             <Label htmlFor="set-online" className="text-sm">
-              Online etkinlikler dahil
+              Include online events
             </Label>
           </div>
         </CardContent>
@@ -153,7 +153,7 @@ export default function SettingsPage() {
 
       <Card className="reveal-2">
         <CardHeader>
-          <SectionTitle>görsel okuma (ocr)</SectionTitle>
+          <SectionTitle>image reading (ocr)</SectionTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-3">
           <div className="flex items-end gap-2 pb-1.5 sm:col-span-1">
@@ -167,12 +167,12 @@ export default function SettingsPage() {
               }
             />
             <Label htmlFor="set-ocr" className="text-sm">
-              Afiş görsellerini yerel OCR ile oku
+              Read poster images with local OCR
             </Label>
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="set-ocr-max" className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              gönderi / görsel
+              posts / image
             </Label>
             <Input
               id="set-ocr-max"
@@ -192,7 +192,7 @@ export default function SettingsPage() {
           </div>
           <div className="space-y-1.5">
             <Label htmlFor="set-ocr-min" className="font-mono text-[10px] uppercase tracking-[0.16em] text-muted-foreground">
-              min görsel boyutu (bayt)
+              min image size (bytes)
             </Label>
             <Input
               id="set-ocr-min"
@@ -211,28 +211,26 @@ export default function SettingsPage() {
             />
           </div>
           <p className="text-xs leading-relaxed text-muted-foreground sm:col-span-3">
-            Tamamen yereldir (tesseract.js, tur+eng); dil verisi ilk kullanımda
-            veri dizinine iner. Okunan metin, paylaşım metnine
-            <code className="mx-1 font-mono">[görsel metni]</code> etiketiyle eklenir ve kanıtlarda izlenebilir.
+            Fully local (tesseract.js, tur+eng); language data downloads to the
+            data directory on first use. Recognized text is appended to the post
+            text with the
+            <code className="mx-1 font-mono">[image text]</code> tag and stays traceable in evidence.
           </p>
         </CardContent>
       </Card>
 
       <Card className="reveal-3">
         <CardHeader>
-          <SectionTitle>limitler</SectionTitle>
+          <SectionTitle>limits</SectionTitle>
         </CardHeader>
         <CardContent className="grid gap-4 sm:grid-cols-4">
           {(
             [
-              ["maxQueriesPerPlatform", "platform / sorgu"],
-              ["maxPostsPerQuery", "sorgu / paylaşım"],
-              ["maxPostsPerPlatform", "platform / toplam"],
-              ["maxPostsPerRun", "tarama / toplam"],
-              ["maxScrollsPerQuery", "sorgu / scroll"],
-              ["minDelayMs", "min bekleme ms"],
-              ["maxDelayMs", "max bekleme ms"],
-              ["maxRunMinutes", "süre bütçesi dk"],
+              ["maxPostsPerQuery", "query / posts"],
+              ["maxScrollsPerQuery", "query / scroll"],
+              ["minDelayMs", "min delay ms"],
+              ["maxDelayMs", "max delay ms"],
+              ["maxRunMinutes", "task time cap min"],
             ] as Array<[keyof SearchConfig["limits"], string]>
           ).map(([key, label]) => (
             <div key={key} className="space-y-1.5">
@@ -252,7 +250,7 @@ export default function SettingsPage() {
       </Card>
 
       <div className="reveal-3">
-        <Button onClick={save}>Kaydet</Button>
+        <Button onClick={save}>Save</Button>
       </div>
     </div>
   );

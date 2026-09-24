@@ -21,7 +21,7 @@ export function recordSessionCheck(input: {
     .run();
 }
 
-/** Her platform için en güncel sonuç. */
+/** Latest result per platform. */
 export function latestSessionChecks(): Array<{
   platform: string;
   status: string;

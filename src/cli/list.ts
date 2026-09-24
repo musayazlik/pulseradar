@@ -9,11 +9,11 @@ const PLATFORM_LABELS: Record<string, string> = {
 };
 
 const TR_MONTHS = [
-  "Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran",
-  "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık",
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
 ];
 
-/** [12 Ekim 2026] biçiminde tarih başlığı. */
+/** Date heading in [12 October 2026] format. */
 function formatDateLabel(dateStr: string): string {
   const [y, m, d] = dateStr.split("-").map(Number);
   if (!y || !m || !d) return dateStr;
@@ -30,7 +30,7 @@ export async function runListCommand(flags: Record<string, string>): Promise<num
   });
 
   if (events.length === 0) {
-    console.log("Kayıt bulunamadı.");
+    console.log("No records found.");
     return 0;
   }
 
@@ -52,11 +52,11 @@ export async function runListCommand(flags: Record<string, string>): Promise<num
           : "—"
       }`,
     );
-    if (event.organizer) console.log(`Organizatör: ${event.organizer}`);
+    if (event.organizer) console.log(`Organizer: ${event.organizer}`);
     console.log(
-      `Kayıt: ${event.registrationUrl ?? "Bulunamadı"}`,
+      `Registration: ${event.registrationUrl ?? "Not found"}`,
     );
-    console.log(""); // boş satır ayırıcı
+    console.log(""); // blank line separator
   }
 
   console.log(`${events.length} etkinlik listelendi.`);

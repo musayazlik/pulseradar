@@ -8,10 +8,10 @@ export default function EventsPage() {
   return (
     <div className="space-y-6">
       <div className="reveal">
-        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">keşif kayıtları</p>
-        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Etkinlikler</h1>
+        <p className="font-mono text-[11px] uppercase tracking-[0.3em] text-primary">discovery records</p>
+        <h1 className="mt-1 font-display text-2xl font-semibold tracking-tight">Events</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Gelecek tarihe göre sıralı; geçmiş kayıtlar ayrı filtrede
+          Sorted by upcoming date; past records are in a separate filter
         </p>
       </div>
       <div className="reveal-2">

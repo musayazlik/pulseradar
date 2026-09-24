@@ -4,11 +4,11 @@ import { getOcrCacheDir } from "../config/paths";
 
 /**
  * Yerel OCR: tesseract.js (tur+eng). Bulut servisi yok; dil verileri ilk
- * kullanımda veri dizinindeki ocr-cache/ altına iner, sonrasında çevrimdışı.
+ * first use it downloads to ocr-cache/ under the data directory; offline afterwards.
  */
 
-const OCR_TEXT_MARKER = "[görsel metni]";
-/** Bu uzunluğun altındaki OCR çıktısı gürültü sayılır. */
+const OCR_TEXT_MARKER = "[image text]";
+/** OCR output below this length is treated as noise. */
 const MIN_OCR_CHARS = 20;
 
 let workerPromise: Promise<Worker> | null = null;
@@ -30,7 +30,7 @@ async function getOcrWorker(): Promise<Worker> {
   return workerPromise;
 }
 
-/** Sadece afiş olabilecek görselleri tutar; avatar/logo/küçük varyantları eler. */
+/** Keeps only images that may be posters; filters out avatars/logos/small variants. */
 export function filterPosterImages(urls: string[]): string[] {
   return urls.filter((url) => {
     if (url.includes("pbs.twimg.com/profile_images")) return false;
@@ -41,7 +41,7 @@ export function filterPosterImages(urls: string[]): string[] {
   });
 }
 
-/** X görsel URL'ini büyük varyanta çevirir. */
+/** Rewrites an X image URL to its large variant. */
 export function toLargeVariant(url: string): string {
   try {
     const parsed = new URL(url);
@@ -55,7 +55,7 @@ export function toLargeVariant(url: string): string {
   }
 }
 
-/** OCR metnini paylaşım metnine kaynak etiketiyle ekler. */
+/** Appends OCR text to the post text with a source tag. */
 export function mergeOcrIntoText(text: string, ocrText: string): string {
   return `${text}\n${OCR_TEXT_MARKER}\n${ocrText}`;
 }
@@ -67,8 +67,8 @@ export interface OcrOptions {
 }
 
 /**
- * Verilen görselleri sırayla indirip OCR eder; tek görselin hatası akışı
- * bozmaz. Anlamlı metin bulunamazsa null döner.
+ * Downloads and OCRs the given images in order; a single image failing does
+ * not break the flow. Returns null when no meaningful text is found.
  */
 export async function ocrImages(
   urls: string[],
@@ -93,7 +93,7 @@ export async function ocrImages(
       const text = (data.text ?? "").replace(/\s+/g, " ").trim();
       if (text.length >= MIN_OCR_CHARS) texts.push(text);
     } catch {
-      // Tek görsel hatası (ağ/bozuk dosya) atlanır.
+      // A single image failure (network/corrupt file) is skipped.
     }
   }
 
@@ -101,7 +101,7 @@ export async function ocrImages(
   return joined.length > 0 ? joined : null;
 }
 
-/** Worker kapanırken OCR kaynaklarını serbest bırakır. */
+/** Releases OCR resources when the worker shuts down. */
 export async function shutdownOcr(): Promise<void> {
   if (!workerPromise) return;
   const worker = await workerPromise.catch(() => null);
