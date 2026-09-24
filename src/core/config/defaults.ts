@@ -59,14 +59,11 @@ export const DEFAULT_SEARCH_CONFIG: SearchConfig = {
     unknownPublishedAt: "exclude_from_date_filtered_results",
   },
   limits: {
-    maxQueriesPerPlatform: 3,
     maxPostsPerQuery: 15,
-    maxPostsPerPlatform: 30,
-    maxPostsPerRun: 60,
     maxScrollsPerQuery: 3,
     minDelayMs: 4000,
     maxDelayMs: 8000,
-    maxRunMinutes: 15,
+    maxRunMinutes: 60,
   },
   ocr: {
     enabled: true,

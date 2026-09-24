@@ -60,10 +60,7 @@ export function mergeCounters(
 }
 
 export interface ScanLimits {
-  maxQueriesPerPlatform: number;
   maxPostsPerQuery: number;
-  maxPostsPerPlatform: number;
-  maxPostsPerRun: number;
   maxScrollsPerQuery: number;
   minDelayMs: number;
   maxDelayMs: number;
